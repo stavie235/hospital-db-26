@@ -238,7 +238,6 @@ CREATE TABLE emergency_contact (
     FOREIGN KEY (patient_id) REFERENCES patient(patient_id)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
-----------------Stopped here-------------------
 -- =====================================================
 -- 4. ΝΟΣΗΛΕΙΑ (Hospitalization & related)
 -- =====================================================
@@ -255,6 +254,14 @@ CREATE TABLE ken (
     CHECK (base_cost >= 0),
     CHECK (alos_days > 0)
 );
+
+--icd-10
+CREATE TABLE ICD10 (
+    icd_code    VARCHAR(10)  NOT NULL,
+    description VARCHAR(500) NOT NULL,
+    category    VARCHAR(100) NOT NULL,
+    PRIMARY KEY (icd_code)
+) 
 
 -- Νοσηλείες (κεντρικός πίνακας)
 CREATE TABLE hospitalization (
@@ -273,13 +280,15 @@ CREATE TABLE hospitalization (
     PRIMARY KEY (hospitalization_id),
 
     FOREIGN KEY (patient_id)    REFERENCES patient(patient_id)
-        ON DELETE RESTRICT ON UPDATE CASCADE,
+        ON DELETE RESTRICT ON UPDATE CASCADE,     
     FOREIGN KEY (bed_id)        REFERENCES bed(bed_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (department_id) REFERENCES department(department_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (ken_code)      REFERENCES ken(ken_code)
         ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY(icd10_code) REFERENCES ICD10(icd_code)
+        ON DELETE CASCADE ON UPDATE CASCADE
 
     CHECK (discharge_date IS NULL OR discharge_date >= admission_date),
     CHECK (total_cost IS NULL OR total_cost >= 0)
@@ -295,6 +304,7 @@ CREATE TABLE triage_record (
     symptoms           TEXT,
     urgency_level      INT          NOT NULL,
     outcome            VARCHAR(50),
+    outcome_time       DATETIME     NOT NULL,
 
     PRIMARY KEY (triage_id),
 
@@ -304,7 +314,8 @@ CREATE TABLE triage_record (
         ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (hospitalization_id) REFERENCES hospitalization(hospitalization_id)
         ON DELETE SET NULL ON UPDATE CASCADE,
-
+    
+    CHECK (outcome_time IS NULL OR outcome_time >= arrival_time),
     CHECK (urgency_level BETWEEN 1 AND 5),
     CHECK (outcome IN ('αποχώρηση', 'νοσηλεία'))
 );
@@ -335,12 +346,24 @@ CREATE TABLE evaluation (
 );
 
 -- Εργαστηριακές εξετάσεις
+-- Κατάλογος εργαστηριακών εξετάσεων (πίνακας αναφοράς)
+CREATE TABLE lab_test_catalog (
+    test_code    VARCHAR(20),
+    test_type    VARCHAR(50)    NOT NULL,
+    name         VARCHAR(200)   NOT NULL,
+    default_cost DECIMAL(10,2),
+    description  TEXT,
+
+    PRIMARY KEY (test_code),
+
+    CHECK (default_cost >= 0 OR default_cost IS NULL)
+);
+
 CREATE TABLE lab_test (
     test_id            INT           AUTO_INCREMENT,
     hospitalization_id INT           NOT NULL,
     ordered_by         INT           NOT NULL,
-    test_code          VARCHAR(20),
-    test_type          VARCHAR(50),
+    test_code          VARCHAR(20)   NOT NULL,
     test_date          DATE          NOT NULL,
     result_text        TEXT,
     result_numeric     DECIMAL(10,4),
@@ -352,6 +375,8 @@ CREATE TABLE lab_test (
     FOREIGN KEY (hospitalization_id) REFERENCES hospitalization(hospitalization_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (ordered_by) REFERENCES doctor(staff_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (test_code) REFERENCES lab_test_catalog(test_code)
         ON DELETE RESTRICT ON UPDATE CASCADE,
 
     CHECK (cost IS NULL OR cost >= 0)
@@ -574,6 +599,7 @@ DELIMITER ;
 
 -- Απαγόρευση συνταγογράφησης αν ο ασθενής είναι
 -- αλλεργικός σε δραστική ουσία του φαρμάκου
+DELIMITER //
 CREATE TRIGGER trg_prescription_allergy_check
 BEFORE INSERT ON prescription
 FOR EACH ROW
@@ -589,6 +615,173 @@ BEGIN
     IF allergy_count > 0 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Ο ασθενής είναι αλλεργικός σε δραστική ουσία του φαρμάκου';
+    END IF;
+END //
+DELIMITER ;
+
+-- =====================================================
+-- Βάρδιες: 4 κανόνες εφημεριών
+-- =====================================================
+
+-- Κανόνας 1: Μηνιαίο όριο βαρδιών ανά κατηγορία
+-- Ιατροί: 15, Νοσηλευτές: 20, Διοικητικό: 25
+DELIMITER //
+CREATE TRIGGER trg_shift_monthly_limit
+BEFORE INSERT ON shift_assignment
+FOR EACH ROW
+BEGIN
+    DECLARE v_staff_type  VARCHAR(20);
+    DECLARE v_shift_date  DATE;
+    DECLARE v_month_count INT;
+    DECLARE v_max_shifts  INT;
+
+    SELECT staff_type INTO v_staff_type
+    FROM staff WHERE staff_id = NEW.staff_id;
+
+    SELECT shift_date INTO v_shift_date
+    FROM shift WHERE shift_id = NEW.shift_id;
+
+    SELECT COUNT(*) INTO v_month_count
+    FROM shift_assignment sa
+    JOIN shift s ON sa.shift_id = s.shift_id
+    WHERE sa.staff_id = NEW.staff_id
+      AND YEAR(s.shift_date)  = YEAR(v_shift_date)
+      AND MONTH(s.shift_date) = MONTH(v_shift_date);
+
+    SET v_max_shifts = CASE v_staff_type
+        WHEN 'doctor'         THEN 15
+        WHEN 'nurse'          THEN 20
+        WHEN 'administrative' THEN 25
+        ELSE 0
+    END;
+
+    IF v_month_count >= v_max_shifts THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Υπέρβαση μηνιαίου ορίου βαρδιών για αυτή την κατηγορία προσωπικού';
+    END IF;
+END //
+DELIMITER ;
+
+-- Κανόνας 2: Ελάχιστο διάστημα ανάπαυσης 8 ωρών μεταξύ βαρδιών
+-- morning:   07:00 - 15:00
+-- afternoon: 15:00 - 23:00
+-- night:     23:00 - 07:00 (+1)
+-- Conflict αν: existing_end + 8h > new_start AND new_end + 8h > existing_start
+DELIMITER //
+CREATE TRIGGER trg_shift_rest_period
+BEFORE INSERT ON shift_assignment
+FOR EACH ROW
+BEGIN
+    DECLARE v_new_date  DATE;
+    DECLARE v_new_type  VARCHAR(10);
+    DECLARE v_new_start DATETIME;
+    DECLARE v_new_end   DATETIME;
+    DECLARE v_conflict  INT DEFAULT 0;
+
+    SELECT shift_date, shift_type INTO v_new_date, v_new_type
+    FROM shift WHERE shift_id = NEW.shift_id;
+
+    IF v_new_type = 'morning' THEN
+        SET v_new_start = TIMESTAMP(v_new_date, '07:00:00');
+        SET v_new_end   = TIMESTAMP(v_new_date, '15:00:00');
+    ELSEIF v_new_type = 'afternoon' THEN
+        SET v_new_start = TIMESTAMP(v_new_date, '15:00:00');
+        SET v_new_end   = TIMESTAMP(v_new_date, '23:00:00');
+    ELSE -- night
+        SET v_new_start = TIMESTAMP(v_new_date, '23:00:00');
+        SET v_new_end   = TIMESTAMP(DATE_ADD(v_new_date, INTERVAL 1 DAY), '07:00:00');
+    END IF;
+
+    SELECT COUNT(*) INTO v_conflict
+    FROM shift_assignment sa
+    JOIN shift s ON sa.shift_id = s.shift_id
+    WHERE sa.staff_id = NEW.staff_id
+      AND (
+            CASE s.shift_type
+                WHEN 'morning'   THEN TIMESTAMP(s.shift_date, '15:00:00')
+                WHEN 'afternoon' THEN TIMESTAMP(s.shift_date, '23:00:00')
+                ELSE TIMESTAMP(DATE_ADD(s.shift_date, INTERVAL 1 DAY), '07:00:00')
+            END + INTERVAL 8 HOUR > v_new_start
+          )
+      AND (
+            v_new_end + INTERVAL 8 HOUR >
+            CASE s.shift_type
+                WHEN 'morning'   THEN TIMESTAMP(s.shift_date, '07:00:00')
+                WHEN 'afternoon' THEN TIMESTAMP(s.shift_date, '15:00:00')
+                ELSE TIMESTAMP(s.shift_date, '23:00:00')
+            END
+          );
+
+    IF v_conflict > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Παραβίαση κανόνα ανάπαυσης: απαιτείται διάστημα τουλάχιστον 8 ωρών μεταξύ βαρδιών';
+    END IF;
+END //
+DELIMITER ;
+
+-- Κανόνας 3: Μέγιστο 3 συνεχόμενες νυχτερινές βάρδιες
+-- Αν οι 3 προηγούμενες νύχτες ήταν όλες night → απαγόρευση 4ης
+DELIMITER //
+CREATE TRIGGER trg_shift_consecutive_nights
+BEFORE INSERT ON shift_assignment
+FOR EACH ROW
+BEGIN
+    DECLARE v_new_date    DATE;
+    DECLARE v_new_type    VARCHAR(10);
+    DECLARE v_night_count INT DEFAULT 0;
+
+    SELECT shift_date, shift_type INTO v_new_date, v_new_type
+    FROM shift WHERE shift_id = NEW.shift_id;
+
+    IF v_new_type = 'night' THEN
+        SELECT COUNT(*) INTO v_night_count
+        FROM shift_assignment sa
+        JOIN shift s ON sa.shift_id = s.shift_id
+        WHERE sa.staff_id = NEW.staff_id
+          AND s.shift_type = 'night'
+          AND s.shift_date IN (
+              DATE_SUB(v_new_date, INTERVAL 1 DAY),
+              DATE_SUB(v_new_date, INTERVAL 2 DAY),
+              DATE_SUB(v_new_date, INTERVAL 3 DAY)
+          );
+
+        IF v_night_count >= 3 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Υπέρβαση ορίου: δεν επιτρέπονται περισσότερες από 3 συνεχόμενες νυχτερινές βάρδιες';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+-- Κανόνας 4: Ειδικευόμενος απαιτεί Επιμελητή Α ή Διευθυντή στην ίδια βάρδια
+DELIMITER //
+CREATE TRIGGER trg_shift_trainee_requires_senior
+BEFORE INSERT ON shift_assignment
+FOR EACH ROW
+BEGIN
+    DECLARE v_staff_type  VARCHAR(20);
+    DECLARE v_rank        VARCHAR(30);
+    DECLARE v_senior_count INT DEFAULT 0;
+
+    SELECT staff_type INTO v_staff_type
+    FROM staff WHERE staff_id = NEW.staff_id;
+
+    IF v_staff_type = 'doctor' THEN
+        SELECT `rank` INTO v_rank
+        FROM doctor WHERE staff_id = NEW.staff_id;
+
+        IF v_rank = 'Ειδικευόμενος' THEN
+            SELECT COUNT(*) INTO v_senior_count
+            FROM shift_assignment sa
+            JOIN doctor d ON sa.staff_id = d.staff_id
+            WHERE sa.shift_id = NEW.shift_id
+              AND d.`rank` IN ('Επιμελητής Α', 'Διευθυντής');
+
+            IF v_senior_count = 0 THEN
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Ειδικευόμενος δεν μπορεί να ανατεθεί σε βάρδια χωρίς Επιμελητη Α ή Διευθυντή';
+            END IF;
+        END IF;
     END IF;
 END //
 DELIMITER ;
