@@ -49,7 +49,7 @@ CREATE TABLE doctor (
     FOREIGN KEY (staff_id)      REFERENCES staff(staff_id)
         ON DELETE CASCADE ON UPDATE CASCADE,            -- if u get deleted from stuff u are deleted from doctor
     FOREIGN KEY (supervisor_id) REFERENCES doctor(staff_id)
-        ON DELETE SET NULL ON UPDATE CASCADE,          --if supervisor deleted u dont get deleted
+        ON DELETE SET NULL ON UPDATE CASCADE,          -- if supervisor deleted u dont get deleted
 
     CHECK (`rank` IN ('Ειδικευόμενος', 'Επιμελητής Β', 'Επιμελητής Α', 'Διευθυντής'))
 );
@@ -135,7 +135,7 @@ CREATE TABLE doctor_department (
 -- Κλίνες (ανήκουν σε τμήμα)
 CREATE TABLE bed (
     id        INT          AUTO_INCREMENT,
-    `number`  INT          NOT NULL,   --for nurses identification
+    `number`  INT          NOT NULL,   -- for nurses identification
     `type`    VARCHAR(30),
     `status`  VARCHAR(30)  DEFAULT 'διαθέσιμη',
     department_id INT          NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE procedure_room (
 
 -- Ασθενείς
 CREATE TABLE patient (
-    patient_id         INT           AUTO_INCREMENT, --or use amka as primary key?
+    patient_id         INT           AUTO_INCREMENT, -- or use amka as primary key?
     amka               CHAR(11)   NOT NULL,
     first_name         VARCHAR(50)   NOT NULL,
     last_name          VARCHAR(50)   NOT NULL,
@@ -261,7 +261,7 @@ CREATE TABLE ICD10 (
     description VARCHAR(500) NOT NULL,
     category    VARCHAR(100) NOT NULL,
     PRIMARY KEY (icd_code)
-) 
+); 
 
 -- Νοσηλείες (κεντρικός πίνακας)
 CREATE TABLE hospitalization (
@@ -281,14 +281,14 @@ CREATE TABLE hospitalization (
 
     FOREIGN KEY (patient_id)    REFERENCES patient(patient_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,     
-    FOREIGN KEY (bed_id)        REFERENCES bed(bed_id)
+    FOREIGN KEY (bed_id)        REFERENCES bed(id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (department_id) REFERENCES department(department_id)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (ken_code)      REFERENCES ken(ken_code)
         ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY(icd10_code) REFERENCES ICD10(icd_code)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE,
 
     CHECK (discharge_date IS NULL OR discharge_date >= admission_date),
     CHECK (total_cost IS NULL OR total_cost >= 0)
@@ -546,8 +546,6 @@ BEGIN
         SET MESSAGE_TEXT = 'Ο Διευθυντής δεν μπορεί να έχει επόπτη';
     END IF;
 END //
-
-DELIMITER //
 
 CREATE TRIGGER trg_doctor_no_cycle_insert
 BEFORE INSERT ON doctor
