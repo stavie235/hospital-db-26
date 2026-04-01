@@ -259,7 +259,7 @@ CREATE TABLE ken (
 CREATE TABLE ICD10 (
     icd_code    VARCHAR(10)  NOT NULL,
     description VARCHAR(500) NOT NULL,
-    category    VARCHAR(100) NOT NULL,
+    category    TEXT NOT NULL,
     PRIMARY KEY (icd_code)
 ); 
 

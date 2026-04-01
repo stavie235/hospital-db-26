@@ -1,19 +1,14 @@
--- =====================================================
--- load.sql  —  Load KEN codes from CSV
--- Γενικό Νοσοκομείο «Υγειόπολης»
--- =====================================================
---
--- Source CSV : hospital-db-26/docs/ken-codes-clean.csv
---   (exported from ken-codes-UPDATED.xlsx — no header row,
---    no euro signs, category-header rows removed)
---
--- How to run (file on client machine):
---   mysql --local-infile=1 -u root -p hospital < hospital-db-26/sql/load.sql
+--ICD10 load
+LOAD DATA INFILE '/tmp/icd10_data.csv'
+INTO TABLE ICD10
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(icd_code, description, category);
 
--- If the CSV is already on the MySQL server host,
--- remove LOCAL and use the absolute server-side path.
--- =====================================================
-
+--KEN
 USE hospital;
 
 LOAD DATA LOCAL INFILE 'hospital-db-26/docs/ken-codes-clean.csv'
