@@ -349,8 +349,8 @@ CREATE TABLE evaluation (
 -- Κατάλογος εργαστηριακών εξετάσεων (πίνακας αναφοράς)
 CREATE TABLE lab_test_catalog (
     test_code    VARCHAR(20),
-    test_type    VARCHAR(50)    NOT NULL,
-    name         VARCHAR(200)   NOT NULL,
+    test_type    VARCHAR(100)    NOT NULL,
+    name         TEXT   NOT NULL,
     default_cost DECIMAL(10,2),
     description  TEXT,
 
@@ -385,9 +385,9 @@ CREATE TABLE lab_test (
 -- Κατάλογος ιατρικών πράξεων (πίνακας αναφοράς)
 CREATE TABLE procedure_catalog (
     procedure_code VARCHAR(20),
-    name           VARCHAR(200)   NOT NULL,
+    name           VARCHAR(700)   NOT NULL,
     category       VARCHAR(30)    NOT NULL,
-    default_cost   DECIMAL(10,2),
+    default_cost   DECIMAL(10,2),  -- ta vazo null alla dn xero giati yparxoun
     description    TEXT,
 
     PRIMARY KEY (procedure_code),
