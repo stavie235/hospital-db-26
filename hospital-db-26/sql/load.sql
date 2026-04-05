@@ -1,3 +1,5 @@
+USE hospital;
+
 --ICD10 load
 LOAD DATA INFILE '/tmp/docs/icd10_data.csv'
 INTO TABLE ICD10
