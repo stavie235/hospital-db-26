@@ -443,7 +443,7 @@ CREATE TABLE procedure_assistant (
 -- Φάρμακα (από EMA Article 57)
 CREATE TABLE drug (
     drug_id     INT           AUTO_INCREMENT,
-    drug_name   VARCHAR(200)  NOT NULL,
+    drug_name   VARCHAR(500)  NOT NULL,
     ema_code    VARCHAR(50),
     description TEXT,
 
@@ -453,7 +453,7 @@ CREATE TABLE drug (
 -- Δραστικές ουσίες
 CREATE TABLE active_substance (
     substance_id   INT           AUTO_INCREMENT,
-    substance_name VARCHAR(200)  NOT NULL,
+    substance_name VARCHAR(500)  NOT NULL,
 
     PRIMARY KEY (substance_id),
     UNIQUE (substance_name)
@@ -785,6 +785,151 @@ END //
 DELIMITER ;
 
 -- =====================================================
+-- ΣΗΜΕΙΩΣΗ: Ο κανόνας ελάχιστης στελέχωσης βάρδιας
+-- (≥3 ιατροί, ≥6 νοσηλευτές, ≥2 διοικητικοί) δεν
+-- επιβάλλεται μέσω trigger γιατί δεν είναι γνωστό
+-- πότε ολοκληρώνεται η καταχώρηση της βάρδιας.
+-- Εφαρμόζεται σε επίπεδο εφαρμογής (application layer).
+-- =====================================================
+
+-- =====================================================
+-- Επεμβάσεις: ταυτόχρονη χρήση χώρου & ιατρού
+-- =====================================================
+
+-- Κανόνας: δύο επεμβάσεις δεν μπορούν να γίνονται ταυτόχρονα στον ίδιο χώρο
+DELIMITER //
+CREATE TRIGGER trg_procedure_room_overlap
+BEFORE INSERT ON medical_procedure
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO v_conflict
+    FROM medical_procedure
+    WHERE room_id = NEW.room_id
+      AND NEW.start_time < COALESCE(end_time, '9999-12-31')
+      AND start_time     < COALESCE(NEW.end_time, '9999-12-31');
+
+    IF v_conflict > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Υπάρχει ήδη επέμβαση στον ίδιο χώρο αυτή την ώρα';
+    END IF;
+END //
+
+-- Κανόνας: ο ίδιος ιατρός δεν μπορεί να συμμετέχει σε δύο ταυτόχρονες επεμβάσεις (ως κύριος)
+CREATE TRIGGER trg_procedure_doctor_overlap
+BEFORE INSERT ON medical_procedure
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict INT DEFAULT 0;
+
+    -- ως κύριος χειρουργός σε άλλη επέμβαση
+    SELECT COUNT(*) INTO v_conflict
+    FROM medical_procedure
+    WHERE primary_surgeon_id = NEW.primary_surgeon_id
+      AND NEW.start_time < COALESCE(end_time, '9999-12-31')
+      AND start_time     < COALESCE(NEW.end_time, '9999-12-31');
+
+    IF v_conflict > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ο ιατρός συμμετέχει ήδη σε άλλη επέμβαση αυτή την ώρα';
+    END IF;
+
+    -- ως βοηθός σε άλλη επέμβαση
+    SELECT COUNT(*) INTO v_conflict
+    FROM procedure_assistant pa
+    JOIN medical_procedure mp ON pa.procedure_id = mp.procedure_id
+    WHERE pa.staff_id = NEW.primary_surgeon_id
+      AND NEW.start_time < COALESCE(mp.end_time, '9999-12-31')
+      AND mp.start_time  < COALESCE(NEW.end_time, '9999-12-31');
+
+    IF v_conflict > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ο ιατρός συμμετέχει ήδη ως βοηθός σε άλλη επέμβαση αυτή την ώρα';
+    END IF;
+END //
+
+-- Κανόνας: ο ίδιος βοηθός δεν μπορεί σε δύο ταυτόχρονες επεμβάσεις
+CREATE TRIGGER trg_procedure_assistant_overlap
+BEFORE INSERT ON procedure_assistant
+FOR EACH ROW
+BEGIN
+    DECLARE v_conflict  INT DEFAULT 0;
+    DECLARE v_new_start DATETIME;
+    DECLARE v_new_end   DATETIME;
+
+    SELECT start_time, end_time INTO v_new_start, v_new_end
+    FROM medical_procedure WHERE procedure_id = NEW.procedure_id;
+
+    -- ως κύριος χειρουργός
+    SELECT COUNT(*) INTO v_conflict
+    FROM medical_procedure
+    WHERE primary_surgeon_id = NEW.staff_id
+      AND procedure_id      != NEW.procedure_id
+      AND v_new_start < COALESCE(end_time, '9999-12-31')
+      AND start_time  < COALESCE(v_new_end, '9999-12-31');
+
+    IF v_conflict > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ο βοηθός είναι ήδη κύριος χειρουργός σε άλλη ταυτόχρονη επέμβαση';
+    END IF;
+
+    -- ως βοηθός σε άλλη επέμβαση
+    SELECT COUNT(*) INTO v_conflict
+    FROM procedure_assistant pa
+    JOIN medical_procedure mp ON pa.procedure_id = mp.procedure_id
+    WHERE pa.staff_id     = NEW.staff_id
+      AND pa.procedure_id != NEW.procedure_id
+      AND v_new_start < COALESCE(mp.end_time, '9999-12-31')
+      AND mp.start_time < COALESCE(v_new_end, '9999-12-31');
+
+    IF v_conflict > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ο βοηθός συμμετέχει ήδη σε άλλη ταυτόχρονη επέμβαση';
+    END IF;
+END //
+DELIMITER ;
+
+-- =====================================================
+-- Κλίνες: αυτόματη διαχείριση κατάστασης
+-- =====================================================
+
+DELIMITER //
+-- Έλεγχος διαθεσιμότητας κλίνης πριν νοσηλεία
+CREATE TRIGGER trg_hospitalization_bed_check
+BEFORE INSERT ON hospitalization
+FOR EACH ROW
+BEGIN
+    DECLARE v_status VARCHAR(30);
+
+    SELECT status INTO v_status FROM bed WHERE id = NEW.bed_id;
+
+    IF v_status != 'διαθέσιμη' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Η κλίνη δεν είναι διαθέσιμη';
+    END IF;
+END //
+
+-- Κλίνη → κατειλημμένη μετά την εισαγωγή νοσηλείας
+CREATE TRIGGER trg_hospitalization_bed_occupy
+AFTER INSERT ON hospitalization
+FOR EACH ROW
+BEGIN
+    UPDATE bed SET status = 'κατειλημμένη' WHERE id = NEW.bed_id;
+END //
+
+-- Κλίνη → διαθέσιμη μετά την έξοδο ασθενή
+CREATE TRIGGER trg_hospitalization_bed_free
+AFTER UPDATE ON hospitalization
+FOR EACH ROW
+BEGIN
+    IF OLD.discharge_date IS NULL AND NEW.discharge_date IS NOT NULL THEN
+        UPDATE bed SET status = 'διαθέσιμη' WHERE id = NEW.bed_id;
+    END IF;
+END //
+DELIMITER ;
+
+-- =====================================================
 -- 7. INDEXES (Ευρετήρια για βελτιστοποίηση queries)
 -- =====================================================
 
@@ -803,6 +948,9 @@ CREATE INDEX idx_shift_date ON shift(shift_date);
 -- Εξετάσεις & Επεμβάσεις
 CREATE INDEX idx_lab_test_hospitalization ON lab_test(hospitalization_id);
 CREATE INDEX idx_procedure_surgeon       ON medical_procedure(primary_surgeon_id);
+
+-- Φάρμακα
+CREATE INDEX idx_drug_name ON drug(drug_name);
 
 -- Συνταγογράφηση
 CREATE INDEX idx_prescription_patient ON prescription(patient_id);
