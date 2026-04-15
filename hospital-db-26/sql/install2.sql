@@ -927,6 +927,33 @@ BEGIN
         UPDATE bed SET status = 'διαθέσιμη' WHERE id = NEW.bed_id;
     END IF;
 END //
+
+-- Αυτόματος υπολογισμός total_cost βάσει ΚΕΝ κατά την έξοδο.
+-- Η εκφώνηση ορίζει: αν actual_days > alos_days, επιβάλλεται
+-- αναλογική πρόσθετη ημερήσια χρέωση = base_cost / alos_days ανά επιπλέον μέρα.
+-- Ο trigger εκτελείται BEFORE UPDATE ώστε να θέτει NEW.total_cost
+-- απευθείας, χωρίς UPDATE στον ίδιο πίνακα (απαγορεύεται σε trigger).
+CREATE TRIGGER trg_hospitalization_cost
+BEFORE UPDATE ON hospitalization
+FOR EACH ROW
+BEGIN
+    DECLARE v_base_cost   DECIMAL(10,2);
+    DECLARE v_alos_days   INT;
+    DECLARE v_actual_days INT;
+
+    IF OLD.discharge_date IS NULL AND NEW.discharge_date IS NOT NULL AND NEW.ken_code IS NOT NULL THEN
+        SELECT base_cost, alos_days INTO v_base_cost, v_alos_days
+        FROM ken WHERE ken_code = NEW.ken_code;
+
+        SET v_actual_days = DATEDIFF(NEW.discharge_date, NEW.admission_date);
+
+        IF v_actual_days > v_alos_days THEN
+            SET NEW.total_cost = v_base_cost + (v_actual_days - v_alos_days) * (v_base_cost / v_alos_days);
+        ELSE
+            SET NEW.total_cost = v_base_cost;
+        END IF;
+    END IF;
+END //
 DELIMITER ;
 
 -- =====================================================
