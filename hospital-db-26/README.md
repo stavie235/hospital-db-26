@@ -1,6 +1,13 @@
 # hospital-db-26
 
-just reviewed  install.sql exceot απο τις βαρδιες και τα φαρμακα κ ολα τα εμπλεκομενα 
-https://app.diagrams.net/#G1yI_30mXudaJQPMzchIIUsxKzp7gwZI5u#%7B%22pageId%22%3A%22H0l7PjpYrFNg5VEylbUn%22%7D [er-diagram-hospital-latest-2(2).drawio](https://github.com/user-attachments/files/26183173/er-diagram-hospital-latest-2.2.drawio)
-
 <img width="6242" height="4222" alt="er-diagram-hospital-latest-2 drawio" src="https://github.com/user-attachments/assets/f05483c0-f611-40d1-88cc-15f75f9d6924" />
+
+## Παραδοχές
+
+| # | Περιορισμός | Παραδοχή |
+|---|---|---|
+| 1 | Ελάχιστη στελέχωση βάρδιας (≥3 ιατροί, ≥6 νοσηλευτές, ≥2 διοικητικοί) | Δεν επιβάλλεται ως trigger γιατί δεν είναι γνωστό πότε ολοκληρώνεται η καταχώρηση της βάρδιας. Ελέγχεται σε επίπεδο εφαρμογής (frontend) πριν την υποβολή. |
+| 2 | FIFO triage | Δεν απαιτεί constraint στη βάση. Η βάση αποθηκεύει `urgency_level` και `arrival_time`. Η σωστή σειρά εξυπηρέτησης εξασφαλίζεται με `ORDER BY urgency_level ASC, arrival_time ASC`. |
+| 3 | Φάρμακα EMA Article 57 | Αφαιρέθηκαν φάρμακα με ελλιπή ή λανθασμένα substance names (fragments λόγω κακής ποιότητας δεδομένων στην πηγή). Αν ένα φάρμακο είχε έστω μία περίεργη ουσία, αφαιρέθηκε ολόκληρο ώστε κάθε φάρμακο να έχει πλήρη λίστα δραστικών ουσιών. Η εκφώνηση επιτρέπει ρητά απλοποίηση των δραστικών ουσιών. |
+| 4 | `drug.description` | Χρησιμοποιείται για route of administration (π.χ. "Oral Use") όπως παρέχεται από το Excel της EMA, όχι για κειμενική περιγραφή του φαρμάκου. |
+| 5 | `drug.ema_code` | Το πεδίο υπάρχει στο schema αλλά δεν φορτώνεται γιατί το Excel της EMA δεν παρέχει μοναδικό κωδικό ανά προϊόν. |
