@@ -23,7 +23,7 @@ hospital-db-26/
 │   ├── ken-codes-clean.csv      (694 rows)
 │   ├── lab_test_catalog.csv     (4,062 rows)
 │   ├── procedure_catalog.csv    (6,429 rows)
-│   ├── drug-description.csv     (88,918 rows)  ← was drug_data-2.csv
+│   ├── drug_data-2.csv          (88,918 rows)
 │   ├── substance_data-2.csv     (13,933 rows)
 │   └── drug_substance_data-2.csv (148,189 rows)
 └── sql/
@@ -114,12 +114,9 @@ Bulk-loads reference data from CSVs mounted at `/tmp/docs/`:
 | `procedure_catalog`| `procedure_catalog.csv`     | 6,429   |
 | `lab_test_catalog` | `lab_test_catalog.csv`      | 4,062   |
 | `ken`              | `ken-codes-clean.csv`       | 694     |
-| `drug`             | `drug-description.csv` *    | 88,918  |
+| `drug`             | `drug_data-2.csv`           | 88,918  |
 | `active_substance` | `substance_data-2.csv`      | 13,933  |
 | `drug_substance`   | `drug_substance_data-2.csv` | 148,189 |
-
-\* `load.sql` references `drug_data-2.csv` (old name). The docker-compose mounts
-`drug-description.csv` at that path as an alias so the SQL file needs no modification.
 
 ### 3. `dummy_data.sql`
 
@@ -166,7 +163,6 @@ the MariaDB entrypoint.
 | `--local-infile=1` | Enables `LOCAL` infile on the client (belt-and-suspenders) |
 | `--max_allowed_packet=256M` | Prevents packet errors on large CSV rows |
 | `--character-set-server=utf8mb4` | Greek text support |
-| `../docs/drug-description.csv:/tmp/docs/drug_data-2.csv:ro` | Alias for renamed file |
 | `../sql:/tmp/sql:ro` | SQL files accessible to init script |
 | `healthcheck` | Reports when InnoDB is fully initialized |
 | `name: hospital_db_data` | Named volume so it survives `down` without `-v` |
@@ -186,12 +182,6 @@ On subsequent starts the volume is non-empty and init is skipped entirely.
 ---
 
 ## Known Issues & Design Decisions
-
-### drug_data-2.csv rename
-`load.sql` line 43 references `drug_data-2.csv`, which was deleted from the repo
-and replaced by `drug-description.csv` (identical schema: `drug_name, description`).
-**Fix**: a second bind mount in docker-compose aliases the new file at the old path.
-The SQL file is left untouched.
 
 ### secure_file_priv
 `load.sql` uses `LOAD DATA INFILE` (server-side). MariaDB's default

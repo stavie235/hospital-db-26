@@ -19,8 +19,6 @@ services:
       - db_data:/var/lib/mysql
       # CSV reference data
       - ../docs:/tmp/docs:ro
-      # drug_data-2.csv was renamed to drug-description.csv; alias it so load.sql still works
-      - ../docs/drug-description.csv:/tmp/docs/drug_data-2.csv:ro
       # SQL scripts (read-only; init script runs them in order)
       - ../sql:/tmp/sql:ro
     healthcheck:
