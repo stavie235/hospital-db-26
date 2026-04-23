@@ -67,10 +67,7 @@ BEGIN
     DELETE FROM procedure_assistant;
     DELETE FROM medical_procedure;
     DELETE FROM lab_test;
-<<<<<<< Updated upstream
-=======
     DELETE FROM doctor_evaluation;
->>>>>>> Stashed changes
     DELETE FROM evaluation;
     DELETE FROM triage_record;
     DELETE FROM prescription;
@@ -99,10 +96,7 @@ BEGIN
     ALTER TABLE hospitalization AUTO_INCREMENT = 1;
     ALTER TABLE triage_record AUTO_INCREMENT = 1;
     ALTER TABLE evaluation AUTO_INCREMENT = 1;
-<<<<<<< Updated upstream
-=======
     ALTER TABLE doctor_evaluation AUTO_INCREMENT = 1;
->>>>>>> Stashed changes
     ALTER TABLE lab_test AUTO_INCREMENT = 1;
     ALTER TABLE medical_procedure AUTO_INCREMENT = 1;
     ALTER TABLE prescription AUTO_INCREMENT = 1;
@@ -493,44 +487,6 @@ BEGIN
                 SET k = k + 1;
             END WHILE;
 
-<<<<<<< Updated upstream
-            INSERT INTO shift (department_id, shift_date, shift_type)
-            VALUES (j, DATE_ADD('2026-04-06', INTERVAL i DAY), 'night');
-            SET v_shift_id = LAST_INSERT_ID();
-
-            SET k = 0;
-            WHILE k < 3 DO
-                IF i < 3 OR i = 6 THEN
-                    SET v_doctor_id = 31 + (j - 1) * 3 + k;
-                ELSE
-                    SET v_doctor_id = 46 + (j - 1) * 3 + k;
-                END IF;
-                INSERT INTO shift_assignment (shift_id, staff_id) VALUES (v_shift_id, v_doctor_id);
-                SET k = k + 1;
-            END WHILE;
-
-            SET k = 0;
-            WHILE k < 6 DO
-                IF i < 3 OR i = 6 THEN
-                    SET v_nurse_id = 141 + (j - 1) * 6 + k;
-                ELSE
-                    SET v_nurse_id = 171 + (j - 1) * 6 + k;
-                END IF;
-                INSERT INTO shift_assignment (shift_id, staff_id) VALUES (v_shift_id, v_nurse_id);
-                SET k = k + 1;
-            END WHILE;
-
-            SET k = 0;
-            WHILE k < 2 DO
-                IF i < 3 OR i = 6 THEN
-                    SET v_admin_id = 221 + (j - 1) * 2 + k;
-                ELSE
-                    SET v_admin_id = 231 + (j - 1) * 2 + k;
-                END IF;
-                INSERT INTO shift_assignment (shift_id, staff_id) VALUES (v_shift_id, v_admin_id);
-                SET k = k + 1;
-            END WHILE;
-=======
             -- Night shifts: μόνο 3 τμήματα (j<=3) για να αποφύγουμε:
             -- (α) >3 συνεχόμενες νύχτες (Night A: 31-39, Night B: 46-54 — μηδενικό overlap)
             -- (β) Ειδικευόμενους (56-80) χωρίς senior στη βάρδια
@@ -572,7 +528,6 @@ BEGIN
                     SET k = k + 1;
                 END WHILE;
             END IF;
->>>>>>> Stashed changes
 
             SET j = j + 1;
         END WHILE;
@@ -760,19 +715,11 @@ BEGIN
     SET i = 1;
     WHILE i <= 320 DO
         INSERT INTO evaluation (
-<<<<<<< Updated upstream
-            hospitalization_id, medical_care, nursing_care,
-=======
             hospitalization_id, nursing_care,
->>>>>>> Stashed changes
             cleanliness, food, overall, comments, evaluation_date
         )
         VALUES (
             i,
-<<<<<<< Updated upstream
-            3 + MOD(i, 3),
-=======
->>>>>>> Stashed changes
             3 + MOD(i + 1, 3),
             3 + MOD(i + 2, 3),
             2 + MOD(i, 4),
@@ -785,8 +732,6 @@ BEGIN
     END WHILE;
 
     -- -------------------------------------------------
-<<<<<<< Updated upstream
-=======
     -- 12b. Doctor evaluations (~250, based on prescriptions)
     --      Ο ιατρός πρέπει να έχει συνταγογραφήσει στη νοσηλεία
     -- -------------------------------------------------
@@ -808,7 +753,6 @@ BEGIN
     END WHILE;
 
     -- -------------------------------------------------
->>>>>>> Stashed changes
     -- 13. Lab tests (200)
     -- -------------------------------------------------
     SET i = 1;
@@ -899,20 +843,12 @@ BEGIN
         (SELECT COUNT(*) FROM medical_procedure) AS medical_procedures,
         (SELECT COUNT(*) FROM lab_test) AS lab_tests,
         (SELECT COUNT(*) FROM triage_record) AS triage_records,
-<<<<<<< Updated upstream
-        (SELECT COUNT(*) FROM evaluation) AS evaluations;
-=======
         (SELECT COUNT(*) FROM evaluation) AS evaluations,
         (SELECT COUNT(*) FROM doctor_evaluation) AS doctor_evaluations;
->>>>>>> Stashed changes
 END //
 
 DELIMITER ;
 
 CALL generate_dummy_data();
 
-<<<<<<< Updated upstream
 DROP PROCEDURE IF EXISTS generate_dummy_data;
-=======
-DROP PROCEDURE IF EXISTS generate_dummy_data;
->>>>>>> Stashed changes
