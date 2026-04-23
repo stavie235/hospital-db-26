@@ -320,11 +320,11 @@ CREATE TABLE triage_record (
     CHECK (outcome IN ('αποχώρηση', 'νοσηλεία'))
 );
 
--- Αξιολόγηση νοσηλείας (κλίμακα Likert 1-5)
+-- (α) Αξιολόγηση νοσηλείας (κλίμακα Likert 1-5)
+-- Ένα evaluation per νοσηλεία: νοσηλευτική φροντίδα, καθαριότητα, φαγητό, συνολική εμπειρία
 CREATE TABLE evaluation (
     evaluation_id      INT  AUTO_INCREMENT,
     hospitalization_id INT  NOT NULL,
-    medical_care       INT  NOT NULL,
     nursing_care       INT  NOT NULL,
     cleanliness        INT  NOT NULL,
     food               INT  NOT NULL,
@@ -338,11 +338,30 @@ CREATE TABLE evaluation (
     FOREIGN KEY (hospitalization_id) REFERENCES hospitalization(hospitalization_id)
         ON DELETE CASCADE ON UPDATE CASCADE,
 
-    CHECK (medical_care BETWEEN 1 AND 5),
     CHECK (nursing_care BETWEEN 1 AND 5),
     CHECK (cleanliness  BETWEEN 1 AND 5),
     CHECK (food         BETWEEN 1 AND 5),
     CHECK (overall      BETWEEN 1 AND 5)
+);
+
+-- (β) Αξιολόγηση ιατρού (κλίμακα Likert 1-5)
+-- Ο ασθενής αξιολογεί κάθε ιατρό που συνταγογράφησε κατά τη νοσηλεία
+CREATE TABLE doctor_evaluation (
+    eval_id            INT  AUTO_INCREMENT,
+    hospitalization_id INT  NOT NULL,
+    doctor_id          INT  NOT NULL,
+    medical_care       INT  NOT NULL,
+    evaluation_date    DATE,
+
+    PRIMARY KEY (eval_id),
+    UNIQUE (hospitalization_id, doctor_id),
+
+    FOREIGN KEY (hospitalization_id) REFERENCES hospitalization(hospitalization_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (doctor_id) REFERENCES doctor(staff_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+
+    CHECK (medical_care BETWEEN 1 AND 5)
 );
 
 -- Εργαστηριακές εξετάσεις
@@ -615,6 +634,55 @@ BEGIN
         SET MESSAGE_TEXT = 'Ο ασθενής είναι αλλεργικός σε δραστική ουσία του φαρμάκου';
     END IF;
 END //
+DELIMITER ;
+
+-- Αξιολογήσεις: κανόνες ολοκληρωμένης νοσηλείας & συνταγογράφησης
+DELIMITER //
+
+-- Κανόνας: αξιολόγηση νοσηλείας μόνο αν έχει discharge_date
+CREATE TRIGGER trg_evaluation_discharged
+BEFORE INSERT ON evaluation
+FOR EACH ROW
+BEGIN
+    DECLARE v_discharge DATE;
+
+    SELECT discharge_date INTO v_discharge
+    FROM hospitalization WHERE hospitalization_id = NEW.hospitalization_id;
+
+    IF v_discharge IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Αξιολόγηση επιτρέπεται μόνο σε ολοκληρωμένη νοσηλεία';
+    END IF;
+END //
+
+-- Κανόνας: αξιολόγηση ιατρού μόνο αν (α) νοσηλεία ολοκληρωμένη
+--           και (β) ο ιατρός έχει συνταγογραφήσει σε αυτή τη νοσηλεία
+CREATE TRIGGER trg_doctor_evaluation_check
+BEFORE INSERT ON doctor_evaluation
+FOR EACH ROW
+BEGIN
+    DECLARE v_discharge DATE;
+    DECLARE v_rx_count  INT;
+
+    SELECT discharge_date INTO v_discharge
+    FROM hospitalization WHERE hospitalization_id = NEW.hospitalization_id;
+
+    IF v_discharge IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Αξιολόγηση ιατρού επιτρέπεται μόνο σε ολοκληρωμένη νοσηλεία';
+    END IF;
+
+    SELECT COUNT(*) INTO v_rx_count
+    FROM prescription
+    WHERE hospitalization_id = NEW.hospitalization_id
+      AND doctor_id = NEW.doctor_id;
+
+    IF v_rx_count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ο ιατρός δεν έχει συνταγογραφήσει κατά τη νοσηλεία αυτή';
+    END IF;
+END //
+
 DELIMITER ;
 
 -- =====================================================
