@@ -1,22 +1,35 @@
 services:
   mariadb:
-    image: mariadb:10.6
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hospital_db
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3306:3306"
-    command: --local-infile=1
+      - "3307:3306"
+    command:
+      - --local-infile=1
+      - --secure-file-priv=
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_allowed_packet=256M
     volumes:
       - db_data:/var/lib/mysql
+      # CSV reference data
       - ../docs:/tmp/docs:ro
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: mariadb
-    depends_on:
-      - mariadb
+      # drug_data-2.csv was renamed to drug-description.csv; alias it so load.sql still works
+      - ../docs/drug-description.csv:/tmp/docs/drug_data-2.csv:ro
+      # SQL scripts (read-only; init script runs them in order)
+      - ../sql:/tmp/sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 120s
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
 volumes:
   db_data:
+    name: hospital_db_data
