@@ -583,7 +583,7 @@ BEGIN
     WHILE i <= 30 DO
         SET v_department_id = 1 + MOD(i - 1, 15);
         SET v_patient_id = 171 + MOD(i - 1, 30);
-        SET v_bed_id = (v_department_id - 1) * 20 + 19 + MOD(i - 1, 2);
+        SET v_bed_id = (v_department_id - 1) * 20 + 17 + MOD(i - 1, 2);
         SET v_admission_date = DATE_ADD('2026-03-15', INTERVAL i DAY);
 
         SET v_ken_rn = 1 + MOD(i * 5 - 1, v_ken_count);
