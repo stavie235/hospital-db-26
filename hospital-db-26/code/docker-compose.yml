@@ -1,28 +1,19 @@
 services:
   mariadb:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: code/Dockerfile
     container_name: hospital_db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
+      HOSPITAL_DB_RELOAD_MODE: ${HOSPITAL_DB_RELOAD_MODE:-preserve}
     ports:
       - "3307:3306"
-    command:
-      - --local-infile=1
-      - --secure-file-priv=
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --max_allowed_packet=256M
     volumes:
       - db_data:/var/lib/mysql
-      # CSV reference data
-      - ../docs:/tmp/docs:ro
-      # SQL scripts (read-only; init script runs them in order)
-      - ../sql:/tmp/sql:ro
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD", "hospital-db-healthcheck.sh"]
       start_period: 120s
       interval: 15s
       timeout: 10s

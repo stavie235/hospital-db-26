@@ -1,0 +1,19 @@
+# macOS metadata
+.DS_Store
+._*
+.Spotlight-V100/
+.Trashes/
+
+# Editor/IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local environment overrides
+.env
+.env.*
+
+# Docker Compose local overrides
+docker-compose.override.yml

@@ -1,84 +1,173 @@
-# Hospital DB — Docker Setup
+# Hospital DB - Docker Setup
 
 ## Overview
 
-This setup fully automates the database lifecycle through Docker Compose:
-schema creation → reference data loading → dummy data generation.
+This Docker setup runs a single MariaDB service for the hospital database.
+The image already contains:
+
+- the schema script: `sql/install.sql`
+- the data-loading script: `sql/load.sql`
+- all CSV reference datasets from `docs/*.csv`
+
 No manual SQL execution is needed.
 
----
+The database data is persisted in the named Docker volume `hospital_db_data`,
+so normal restarts reuse the existing data by default.
 
 ## Directory Structure
 
-```
+```text
 hospital-db-26/
+├── .dockerignore
 ├── code/
-│   ├── docker-compose1.yml       ← entry point: run this
-│   ├── Dockerfile                ← builds mariadb:10.6 + init script
-│   ├── init/
-│   │   └── 01_hospital_init.sh  ← orchestrates the 3 SQL files
-│   └── DOCKER_SETUP.md          ← this file
+│   ├── docker-compose.yml
+│   ├── Dockerfile
+│   ├── DOCKER_SETUP.md
+│   └── init/
+│       ├── 01_hospital_init.sh
+│       ├── docker-entrypoint-wrapper.sh
+│       └── hospital-db-healthcheck.sh
 ├── docs/
-│   ├── icd10_data.csv           (11,009 rows)
-│   ├── ken-codes-clean.csv      (694 rows)
-│   ├── lab_test_catalog.csv     (4,062 rows)
-│   ├── procedure_catalog.csv    (6,429 rows)
-│   ├── drug_data-2.csv          (88,918 rows)
-│   ├── substance_data-2.csv     (13,933 rows)
-│   └── drug_substance_data-2.csv (148,189 rows)
+│   ├── drug_data-2.csv
+│   ├── drug_substance_data-2.csv
+│   ├── icd10_data.csv
+│   ├── ken-codes-clean.csv
+│   ├── lab_test_catalog.csv
+│   ├── procedure_catalog.csv
+│   └── substance_data-2.csv
 └── sql/
-    ├── install2.sql             ← schema: tables, triggers, indexes
-    ├── load.sql                 ← reference data: CSV bulk loads
-    └── dummy_data.sql           ← operational data: stored procedure
+    ├── install.sql
+    └── load.sql
 ```
-
----
 
 ## How to Run
 
-### First start (builds image + initializes DB)
+### 1. First start
+
+From the `code/` directory:
 
 ```bash
-cd hospital-db-26/code
-docker compose -f docker-compose1.yml up --build
+cd hospital-db-26/hospital-db-26/code
+docker compose up --build
 ```
 
-Initialization runs automatically and takes **3–8 minutes** depending on hardware
-(the drug/substance CSVs total ~250k rows).
+What happens on the first run:
 
-Watch progress in the logs:
+1. Docker builds the MariaDB image.
+2. MariaDB starts with an empty volume.
+3. `install.sql` creates the `hospital` schema.
+4. `load.sql` loads the CSV reference data and generates the sample operational data.
 
-```
-[hospital-db] Step 1/3: Creating schema (install2.sql)...
-[hospital-db] Step 2/3: Loading reference data (load.sql) — may take several minutes...
-[hospital-db] Step 3/3: Generating dummy data (dummy_data.sql)...
+Initialization can take a few minutes.
+
+Expected log messages:
+
+```text
+[hospital-db] No persisted database found. Running first-time initialization.
+[hospital-db] Starting database initialization...
+[hospital-db] Step 1/2: Creating schema (install.sql)...
+[hospital-db] Step 2/2: Loading reference and sample data (load.sql)...
 [hospital-db] All done. Database is ready.
 ```
 
-### Subsequent starts (data already persisted in volume)
+### 2. Normal restart
 
 ```bash
-docker compose -f docker-compose1.yml up
+docker compose up
 ```
 
-Init scripts are skipped — the volume already has data.
+This reuses the existing `hospital_db_data` volume and does not reload the SQL.
 
-### Stop (keep data)
+### 3. Stop the container
 
 ```bash
-docker compose -f docker-compose1.yml down
+docker compose down
 ```
 
-### Full reset (destroy data, re-initialize from scratch)
+This stops the container and keeps the database volume.
+
+### 4. Full reset
+
+Use this when you want to destroy everything and reinitialize from scratch:
 
 ```bash
-docker compose -f docker-compose1.yml down -v
-docker compose -f docker-compose1.yml up --build
+docker compose down -v
+docker compose up --build
 ```
 
-### Connect with a MySQL client
+### 5. Verify the loaded contents
 
+After the container is up, run:
+
+```bash
+./verify_db.sh
 ```
+
+The script connects to the running MariaDB container and prints:
+
+- whether the `hospital` schema exists
+- the number of tables in the schema
+- the full table list
+- row counts for the main reference and sample-data tables
+- a few sample rows from `staff`, `patient`, and `department`
+
+## Reload Modes
+
+The service supports a reload policy through the environment variable
+`HOSPITAL_DB_RELOAD_MODE`.
+
+It is already wired in `docker-compose.yml` like this:
+
+```yaml
+HOSPITAL_DB_RELOAD_MODE: ${HOSPITAL_DB_RELOAD_MODE:-preserve}
+```
+
+Available modes:
+
+| Mode | Behavior |
+|---|---|
+| `preserve` | Default. Reuse the existing persisted database and skip reloads. |
+| `checksum` | Reload only if the built SQL fingerprint changed since the last successful load. |
+| `force` | Always rerun `install.sql` and `load.sql` even if a database volume already exists. |
+
+### Default behavior
+
+```bash
+docker compose up
+```
+
+Equivalent to:
+
+```bash
+HOSPITAL_DB_RELOAD_MODE=preserve docker compose up
+```
+
+### Reload only when SQL changes
+
+Useful after editing `sql/install.sql` or `sql/load.sql`:
+
+```bash
+HOSPITAL_DB_RELOAD_MODE=checksum docker compose up --build
+```
+
+The image stores a checksum of the SQL files at build time. After a successful
+load, that checksum is saved in the data volume. On the next startup, the
+container compares them and reloads only if they differ.
+
+### Force a reload into the existing volume
+
+```bash
+HOSPITAL_DB_RELOAD_MODE=force docker compose up
+```
+
+This keeps the Docker volume itself, but the SQL scripts will drop and recreate
+the `hospital` database contents.
+
+## Connection Details
+
+Use these values from a MySQL client or a future frontend/backend service:
+
+```text
 Host:     127.0.0.1
 Port:     3307
 User:     root
@@ -86,135 +175,154 @@ Password: root
 Database: hospital
 ```
 
-Or via Docker directly:
+Or connect from the terminal:
 
 ```bash
 docker exec -it hospital_db mariadb -uroot -proot hospital
 ```
 
----
+## What the SQL Does
 
-## What Runs and in What Order
+### `install.sql`
 
-### 1. `install2.sql`
+- drops and recreates the `hospital` database
+- creates the schema, constraints, indexes, and triggers
 
-- `DROP DATABASE IF EXISTS hospital` — always starts clean
-- `CREATE DATABASE hospital CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
-- Creates all tables in dependency order (staff hierarchy → departments → patients → hospitalizations → drugs/prescriptions)
-- Installs **14 triggers** (allergy checks, shift rules, bed management, cost calculation, etc.)
-- Creates **13 indexes** for query performance
+### `load.sql`
 
-### 2. `load.sql`
+- bulk-loads the reference CSV datasets into lookup tables
+- creates and runs the stored procedure that inserts sample operational data
 
-Bulk-loads reference data from CSVs mounted at `/tmp/docs/`:
-
-| Table              | Source CSV                  | Rows    |
-|--------------------|-----------------------------|---------|
-| `ICD10`            | `icd10_data.csv`            | 11,009  |
-| `procedure_catalog`| `procedure_catalog.csv`     | 6,429   |
-| `lab_test_catalog` | `lab_test_catalog.csv`      | 4,062   |
-| `ken`              | `ken-codes-clean.csv`       | 694     |
-| `drug`             | `drug_data-2.csv`           | 88,918  |
-| `active_substance` | `substance_data-2.csv`      | 13,933  |
-| `drug_substance`   | `drug_substance_data-2.csv` | 148,189 |
-
-### 3. `dummy_data.sql`
-
-Calls the stored procedure `generate_dummy_data()` which inserts deterministic
-test data into all operational tables:
-
-| Entity               | Count |
-|----------------------|-------|
-| Departments          | 15    |
-| Doctors              | 80    |
-| Nurses               | 120   |
-| Administrative staff | 60    |
-| Beds                 | 300   |
-| Procedure rooms      | 10    |
-| Patients             | 200   |
-| Hospitalizations     | 500   |
-| Triage records       | 280   |
-| Prescriptions        | 300   |
-| Lab tests            | 200   |
-| Medical procedures   | 150   |
-
----
+There is no separate `dummy_data.sql` file in the current setup. Sample data is
+handled inside `load.sql`.
 
 ## How the Docker Setup Works
 
 ### Dockerfile
 
-```dockerfile
-FROM mariadb:10.6
-COPY --chmod=755 init/01_hospital_init.sh /docker-entrypoint-initdb.d/
+The image uses a staged build:
+
+1. an `alpine` stage copies `sql/` and `docs/*.csv` and computes a checksum
+2. the final `mariadb:10.6` stage copies those baked assets into the image
+
+This improves repeat builds and removes the need for runtime bind mounts for SQL
+and CSV files.
+
+### Entry point wrapper
+
+`docker-entrypoint-wrapper.sh` sits in front of the standard MariaDB entrypoint.
+It decides whether this is:
+
+- a true first run with an empty volume
+- a normal restart using persisted data
+- a reload run based on `HOSPITAL_DB_RELOAD_MODE`
+
+It also exports:
+
+- `HOSPITAL_DB_FIRST_RUN=true` on first initialization
+- `HOSPITAL_DB_FIRST_RUN=false` on subsequent starts
+
+### Initialization script
+
+`01_hospital_init.sh` executes:
+
+1. `install.sql`
+2. `load.sql`
+
+After success, it writes the applied SQL fingerprint to:
+
+```text
+/var/lib/mysql/.hospital-db-sql.sha256
 ```
 
-The init script is **baked into the image** with executable permissions.
-This is necessary on Windows, where bind-mounted files do not inherit Unix
-execute bits — making the script non-executable and silently skipped by
-the MariaDB entrypoint.
+### Healthcheck
 
-### docker-compose1.yml — key settings
+`hospital-db-healthcheck.sh` reports the container as healthy only when:
 
-| Setting | Reason |
-|---|---|
-| `build:` instead of `image:` | Uses the Dockerfile above |
-| `--secure-file-priv=` | Allows `LOAD DATA INFILE` to read from `/tmp/docs/` |
-| `--local-infile=1` | Enables `LOCAL` infile on the client (belt-and-suspenders) |
-| `--max_allowed_packet=256M` | Prevents packet errors on large CSV rows |
-| `--character-set-server=utf8mb4` | Greek text support |
-| `../sql:/tmp/sql:ro` | SQL files accessible to init script |
-| `healthcheck` | Reports when InnoDB is fully initialized |
-| `name: hospital_db_data` | Named volume so it survives `down` without `-v` |
+- MariaDB is accepting connections
+- the `hospital` schema exists
+- no initialization or reload is still in progress
 
-### MariaDB entrypoint behavior
+## Important Notes
 
-On first start (empty data volume), MariaDB runs every file inside
-`/docker-entrypoint-initdb.d/` in alphabetical order:
+### SQL and CSV files are baked into the image
 
-- `.sh` files → executed as shell scripts
-- `.sql` files → piped through the mysql client
+If you change:
 
-Our single `.sh` script runs the three SQL files manually so it controls
-connection flags (`--local-infile=1`) and execution order.
-On subsequent starts the volume is non-empty and init is skipped entirely.
+- `sql/install.sql`
+- `sql/load.sql`
+- any of the CSV files in `docs/`
 
----
+you should rebuild the image:
 
-## Known Issues & Design Decisions
+```bash
+docker compose up --build
+```
 
-### secure_file_priv
-`load.sql` uses `LOAD DATA INFILE` (server-side). MariaDB's default
-`secure_file_priv` can block reads from arbitrary paths.
-Setting `--secure-file-priv=` (empty) removes the restriction inside
-the container, which is acceptable for a development database.
+If you changed SQL and want the persisted database to be refreshed
+automatically, use:
 
-### Shift staffing minimum not enforced by triggers
-Per the project specification, the rule requiring ≥3 doctors, ≥6 nurses,
-and ≥2 administrative staff per shift is **not** a database trigger — it
-is enforced at the application layer only.
+```bash
+HOSPITAL_DB_RELOAD_MODE=checksum docker compose up --build
+```
 
-### Greek locale
-All enum values, trigger error messages, and dummy data are in Greek (UTF-8).
-Ensure your client is configured for `utf8mb4` to display them correctly.
+### `LOAD DATA INFILE`
 
----
+`load.sql` uses `LOAD DATA INFILE`, so the container starts MariaDB with:
+
+- `--local-infile=1`
+- `--secure-file-priv=`
+- `--character-set-server=utf8mb4`
+- `--collation-server=utf8mb4_unicode_ci`
+- `--max_allowed_packet=256M`
+
+These flags are now defined in the image `CMD`, not in `docker-compose.yml`.
+
+### No phpMyAdmin
+
+This setup intentionally runs only MariaDB. Querying and visualization can be
+handled later by your own frontend or backend service.
 
 ## Troubleshooting
 
-**Init did not run (DB is empty)**
-The volume already existed. Run `docker compose -f docker-compose1.yml down -v`
-then `up --build` to start fresh.
+**The database starts but old data is still there**
 
-**`LOAD DATA INFILE` permission denied**
-Ensure `--secure-file-priv=` is in the command list and the container was
-rebuilt after adding it (`docker compose -f docker-compose1.yml up --build`).
+The default mode is `preserve`. Use one of:
 
-**Port conflict**
-The host port is already mapped to 3307 (`"3307:3306"`). If 3307 is also taken,
-change it to any free port (e.g. `"3308:3306"`) and connect on that port.
+```bash
+HOSPITAL_DB_RELOAD_MODE=checksum docker compose up --build
+```
 
-**Init script not found or not executable**
-Rebuild the image: `docker compose -f docker-compose1.yml build --no-cache`.
-The Dockerfile's `COPY --chmod=755` must be in a BuildKit-capable Docker version
-(Docker Desktop ≥ 20.10).
+or:
+
+```bash
+HOSPITAL_DB_RELOAD_MODE=force docker compose up
+```
+
+**The volume is in a bad state and reload still does not help**
+
+Do a full reset:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+**`LOAD DATA INFILE` fails**
+
+Rebuild the image and start again:
+
+```bash
+docker compose up --build
+```
+
+**Port `3307` is already in use**
+
+Change the port mapping in `code/docker-compose.yml`, for example:
+
+```yaml
+ports:
+  - "3308:3306"
+```
+
+Then connect on port `3308`.
