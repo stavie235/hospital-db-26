@@ -2,8 +2,12 @@
 
 ## Overview
 
-This Docker setup runs a single MariaDB service for the hospital database.
-The image already contains:
+This Docker setup runs two services:
+
+- `mariadb`: the hospital database
+- `query-ui`: the read-only browser query console
+
+The MariaDB image already contains:
 
 - the schema script: `sql/install.sql`
 - the data-loading script: `sql/load.sql`
@@ -23,6 +27,11 @@ hospital-db-26/
 │   ├── docker-compose.yml
 │   ├── Dockerfile
 │   ├── DOCKER_SETUP.md
+│   ├── query_ui/
+│   │   ├── Dockerfile
+│   │   ├── server.py
+│   │   ├── saved_queries.py
+│   │   └── static/
 │   └── init/
 │       ├── 01_hospital_init.sh
 │       ├── docker-entrypoint-wrapper.sh
@@ -53,10 +62,11 @@ docker compose up --build
 
 What happens on the first run:
 
-1. Docker builds the MariaDB image.
+1. Docker builds the MariaDB and query UI images.
 2. MariaDB starts with an empty volume.
 3. `install.sql` creates the `hospital` schema.
 4. `load.sql` loads the CSV reference data and generates the sample operational data.
+5. After the database is healthy, the query UI starts.
 
 Initialization can take a few minutes.
 
@@ -77,6 +87,11 @@ docker compose up
 ```
 
 This reuses the existing `hospital_db_data` volume and does not reload the SQL.
+The UI will be available at:
+
+```text
+http://127.0.0.1:8765
+```
 
 ### 3. Stop the container
 
@@ -110,6 +125,44 @@ The script connects to the running MariaDB container and prints:
 - the full table list
 - row counts for the main reference and sample-data tables
 - a few sample rows from `staff`, `patient`, and `department`
+
+### 6. Query UI
+
+The query UI now runs as the `query-ui` Docker Compose service:
+
+```bash
+docker compose up query-ui
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8765
+```
+
+The UI includes:
+
+- a Splunk/Kibana-style saved-search sidebar
+- a live SQL editor for read-only queries
+- table, JSON, and chart views
+- a schema browser
+- 15 preloaded hospital analytics queries that you can edit and rerun
+
+The saved-query catalog lives in:
+
+```text
+code/query_ui/saved_queries.py
+```
+
+For local development outside Docker, you can still run:
+
+```bash
+./run_query_ui.sh
+```
+
+The host script uses `docker compose exec` to query the `mariadb` service. The
+containerized UI uses Docker networking and connects directly to host `mariadb`
+on port `3306`.
 
 ## Reload Modes
 
@@ -175,6 +228,16 @@ Password: root
 Database: hospital
 ```
 
+From another Compose service, use:
+
+```text
+Host:     mariadb
+Port:     3306
+User:     root
+Password: root
+Database: hospital
+```
+
 Or connect from the terminal:
 
 ```bash
@@ -198,7 +261,7 @@ handled inside `load.sql`.
 
 ## How the Docker Setup Works
 
-### Dockerfile
+### MariaDB Dockerfile
 
 The image uses a staged build:
 
@@ -207,6 +270,18 @@ The image uses a staged build:
 
 This improves repeat builds and removes the need for runtime bind mounts for SQL
 and CSV files.
+
+### Query UI Dockerfile
+
+`code/query_ui/Dockerfile` builds a small Python image with the MariaDB client
+installed. The UI service exposes port `8765` and connects to the database using
+these environment variables from `docker-compose.yml`:
+
+- `HOSPITAL_DB_HOST=mariadb`
+- `HOSPITAL_DB_PORT=3306`
+- `HOSPITAL_DB_USER=root`
+- `HOSPITAL_DB_PASSWORD=root`
+- `HOSPITAL_DB_NAME=hospital`
 
 ### Entry point wrapper
 
@@ -281,7 +356,7 @@ These flags are now defined in the image `CMD`, not in `docker-compose.yml`.
 ### No phpMyAdmin
 
 This setup intentionally runs only MariaDB. Querying and visualization can be
-handled later by your own frontend or backend service.
+handled by the local query console in `code/query_ui/`.
 
 ## Troubleshooting
 

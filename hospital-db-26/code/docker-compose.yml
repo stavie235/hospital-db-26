@@ -19,6 +19,26 @@ services:
       timeout: 10s
       retries: 5
 
+  query-ui:
+    build:
+      context: ..
+      dockerfile: code/query_ui/Dockerfile
+    container_name: hospital_query_ui
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      HOSPITAL_DB_HOST: mariadb
+      HOSPITAL_DB_PORT: 3306
+      HOSPITAL_DB_USER: root
+      HOSPITAL_DB_PASSWORD: root
+      HOSPITAL_DB_NAME: hospital
+      HOSPITAL_QUERY_UI_HOST: 0.0.0.0
+      HOSPITAL_QUERY_UI_PORT: 8765
+    ports:
+      - "8765:8765"
+
 volumes:
   db_data:
     name: hospital_db_data

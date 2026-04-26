@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hospital Query Console</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">H</div>
+          <div>
+            <h1>Hospital Query Console</h1>
+            <p>Saved searches, schema browser, and live SQL.</p>
+          </div>
+        </div>
+
+        <section class="panel sidebar-panel">
+          <div class="panel-header">
+            <h2>Saved Searches</h2>
+          </div>
+          <div class="library-tools">
+            <label class="sr-only" for="query-filter">Filter saved queries</label>
+            <input id="query-filter" type="search" placeholder="Filter saved queries">
+            <div id="category-filter" class="segmented" aria-label="Saved query categories"></div>
+          </div>
+          <div id="saved-query-list" class="saved-query-list"></div>
+        </section>
+
+        <section class="panel sidebar-panel">
+          <div class="panel-header">
+            <h2>Schema</h2>
+            <button id="refresh-schema" class="ghost-button" type="button">Refresh</button>
+          </div>
+          <label class="sr-only" for="schema-filter">Filter schema</label>
+          <input id="schema-filter" type="search" placeholder="Find table or column">
+          <div id="schema-list" class="schema-list"></div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Local Analytics Workbench</p>
+            <h2 id="active-query-title">Loading…</h2>
+            <p id="active-query-description" class="muted"></p>
+          </div>
+          <div class="topbar-actions">
+            <div class="status-pill">
+              <span class="status-dot"></span>
+              <span id="connection-status">Checking database</span>
+            </div>
+            <button id="reset-query" class="ghost-button" type="button">Reset to Saved Query</button>
+            <button id="run-query" class="primary-button" type="button">Run Query</button>
+          </div>
+        </header>
+
+        <section class="panel editor-panel">
+          <div class="editor-toolbar">
+            <div class="editor-meta">
+              <span class="chip">Ctrl/Cmd + Enter</span>
+              <span id="last-run-meta" class="muted">No query executed yet.</span>
+            </div>
+            <button id="copy-sql" class="ghost-button" type="button">Copy SQL</button>
+          </div>
+          <label class="sr-only" for="sql-editor">SQL editor</label>
+          <textarea id="sql-editor" spellcheck="false"></textarea>
+        </section>
+
+        <section class="insights-grid">
+          <section class="panel results-panel">
+            <div class="panel-header">
+              <h2>Results</h2>
+              <div class="tabs">
+                <button class="tab is-active" data-tab="table" type="button">Table</button>
+                <button class="tab" data-tab="visual" type="button">Visualize</button>
+                <button class="tab" data-tab="json" type="button">JSON</button>
+              </div>
+            </div>
+            <div id="table-tab" class="tab-panel is-active">
+              <div class="results-toolbar">
+                <div id="results-summary" class="results-summary muted">Run a query to inspect the dataset.</div>
+                <div class="results-actions">
+                  <label class="sr-only" for="result-filter">Filter result rows</label>
+                  <input id="result-filter" type="search" placeholder="Filter rows">
+                  <select id="page-size" aria-label="Rows per page">
+                    <option value="25">25 rows</option>
+                    <option value="50" selected>50 rows</option>
+                    <option value="100">100 rows</option>
+                    <option value="250">250 rows</option>
+                  </select>
+                  <button id="export-csv" class="ghost-button" type="button" disabled>Export CSV</button>
+                </div>
+              </div>
+              <div id="results-table-wrap" class="table-wrap">
+                <table id="results-table">
+                  <thead></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="pager" aria-label="Result pagination">
+                <button id="prev-page" class="ghost-button" type="button" disabled>Previous</button>
+                <span id="page-meta" class="muted">Page 0 of 0</span>
+                <button id="next-page" class="ghost-button" type="button" disabled>Next</button>
+              </div>
+            </div>
+            <div id="visual-tab" class="tab-panel">
+              <div id="visualization" class="visualization"></div>
+            </div>
+            <div id="json-tab" class="tab-panel">
+              <pre id="json-output"></pre>
+            </div>
+          </section>
+
+          <section class="panel notes-panel">
+            <div class="panel-header">
+              <h2>Query Notes</h2>
+            </div>
+            <div id="query-notes" class="notes"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="saved-query-template">
+      <button class="saved-query-card" type="button">
+        <div class="saved-query-text">
+          <span class="saved-query-category"></span>
+          <strong class="saved-query-title"></strong>
+          <p class="saved-query-description"></p>
+        </div>
+      </button>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+  </html>
