@@ -680,7 +680,9 @@ BEGIN
             symptoms, urgency_level, outcome, outcome_time
         )
         VALUES (
-            1 + MOD(i - 1, 200), 81 + MOD(i - 1, 15), i,
+            -- Mirror the hospitalization patient formula so patient_id always matches.
+            CASE WHEN i <= 60 THEN 1 + MOD(i - 1, 15) ELSE 1 + MOD(i - 1, 200) END,
+            81 + MOD(i - 1, 15), i,
             DATE_ADD(CONCAT((SELECT admission_date FROM hospitalization WHERE hospitalization_id = i), ' 06:00:00'), INTERVAL MOD(i, 120) MINUTE),
             CONCAT('Συμπτώματα περιστατικού ', i),
             1 + MOD(i - 1, 5), 'νοσηλεία',
@@ -710,7 +712,9 @@ BEGIN
     -- -------------------------------------------------
     SET i = 1;
     WHILE i <= 300 DO
-        SET v_hospitalization_id = 1 + MOD(i - 1, 300);
+        -- Cycling over 150 hospitalisations means each gets 2 prescriptions
+        -- (i=1..150 and i=151..300), enabling Q10's substance-pair analysis.
+        SET v_hospitalization_id = 1 + MOD(i - 1, 150);
 
         SELECT patient_id, admission_date, COALESCE(discharge_date, DATE_ADD(admission_date, INTERVAL 5 DAY))
         INTO v_tmp_patient_id, v_tmp_admission, v_tmp_discharge
@@ -772,12 +776,15 @@ BEGIN
     -- -------------------------------------------------
     SET i = 1;
     WHILE i <= 250 DO
-        SET v_hospitalization_id = 1 + MOD(i - 1, 300);
+        -- Cycle over the 150 hospitalisations that actually have prescriptions.
+        -- Use the same doctor formula as the 1st prescription for that hosp
+        -- so the trigger check (doctor must have prescribed) always passes.
+        SET v_hospitalization_id = 1 + MOD(i - 1, 150);
         INSERT IGNORE INTO doctor_evaluation (
             hospitalization_id, doctor_id, medical_care, evaluation_date
         )
         VALUES (
-            v_hospitalization_id, 1 + MOD(i - 1, 80), 3 + MOD(i, 3),
+            v_hospitalization_id, 1 + MOD(v_hospitalization_id - 1, 80), 3 + MOD(i, 3),
             DATE_ADD((SELECT discharge_date FROM hospitalization WHERE hospitalization_id = v_hospitalization_id), INTERVAL 4 DAY)
         );
         SET i = i + 1;
