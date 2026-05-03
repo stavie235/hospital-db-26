@@ -2,7 +2,7 @@ USE hospital;
 
 --ICD10 load
 LOAD DATA INFILE '/tmp/docs/icd10_data.csv'
-INTO TABLE ICD10
+IGNORE INTO TABLE ICD10
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
@@ -12,7 +12,7 @@ IGNORE 1 ROWS
 
 --PROCEDURE CATALOG
 LOAD DATA INFILE '/tmp/docs/procedure_catalog.csv'
-INTO TABLE procedure_catalog
+IGNORE INTO TABLE procedure_catalog
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
@@ -32,7 +32,7 @@ IGNORE 1 ROWS
 
 --KEN
 LOAD DATA INFILE '/tmp/docs/ken-codes-clean.csv'
-INTO TABLE ken
+IGNORE INTO TABLE ken
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
@@ -41,7 +41,7 @@ LINES TERMINATED BY '\n'
 
 --DRUGS
 LOAD DATA INFILE '/tmp/docs/drug_data-2.csv'
-INTO TABLE drug
+IGNORE INTO TABLE drug
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
@@ -51,7 +51,7 @@ IGNORE 1 ROWS
 
 --ACTIVE SUBSTANCES
 LOAD DATA INFILE '/tmp/docs/substance_data-2.csv'
-INTO TABLE active_substance
+IGNORE INTO TABLE active_substance
 CHARACTER SET utf8mb4
 FIELDS TERMINATED BY ','
 OPTIONALLY ENCLOSED BY '"'
@@ -608,7 +608,13 @@ BEGIN
     SET i = 1;
     WHILE i <= 470 DO
         SET v_department_id = 1 + MOD(i - 1, 15);
-        SET v_patient_id = 1 + MOD(i - 1, 200);
+        -- For i<=60 the same 15 patients cycle through their matching department
+        -- 4 times each (60/15=4), satisfying Q03's HAVING COUNT(*) > 3.
+        -- For i>60 the full 200-patient rotation resumes.
+        SET v_patient_id = CASE
+            WHEN i <= 60 THEN 1 + MOD(i - 1, 15)
+            ELSE 1 + MOD(i - 1, 200)
+        END;
         SET v_bed_id = (v_department_id - 1) * 20 + 1 + MOD(FLOOR((i - 1) / 15), 18);
         SET v_admission_date = DATE_ADD('2023-01-01', INTERVAL i * 3 DAY);
         SET v_length_days = 2 + MOD(i, 9);
