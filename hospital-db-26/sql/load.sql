@@ -620,7 +620,9 @@ BEGIN
         SET v_length_days = 2 + MOD(i, 9);
 
         SET v_ken_rn = 1 + MOD(i - 1, v_ken_count);
-        SET v_icd_rn = 1 + MOD(i * 7 - 1, v_icd_count);
+        -- Sequential cycling ensures 2024 and 2025 (both 122 hospitalisations)
+        -- land in the same ICD category with equal counts, satisfying Q14.
+        SET v_icd_rn = 1 + MOD(i - 1, v_icd_count);
 
         SELECT ken_code INTO v_ken_code FROM tmp_ken_map WHERE rn = v_ken_rn;
         SELECT icd_code INTO v_icd_code FROM tmp_icd_map WHERE rn = v_icd_rn;
