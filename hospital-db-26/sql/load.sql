@@ -263,7 +263,7 @@ BEGIN
         )
         VALUES (
             LPAD(10000000000 + i, 11, '0'),
-            CONCAT('Doctor', i),
+            CONCAT('Firstname', i),
             CONCAT('Surname', i),
             31 + MOD(i, 24),
             CONCAT('doctor', i, '@hospital.local'),
@@ -337,7 +337,7 @@ BEGIN
         )
         VALUES (
             LPAD(20000000000 + i, 11, '0'),
-            CONCAT('Nurse', i),
+            CONCAT('Firstname', i),
             CONCAT('Surname', i),
             24 + MOD(i, 26),
             CONCAT('nurse', i, '@hospital.local'),
@@ -370,7 +370,7 @@ BEGIN
         )
         VALUES (
             LPAD(30000000000 + i, 11, '0'),
-            CONCAT('Admin', i),
+            CONCAT('Firstname', i),
             CONCAT('Surname', i),
             26 + MOD(i, 28),
             CONCAT('admin', i, '@hospital.local'),
