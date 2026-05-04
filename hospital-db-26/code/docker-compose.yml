@@ -7,11 +7,9 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      HOSPITAL_DB_RELOAD_MODE: ${HOSPITAL_DB_RELOAD_MODE:-preserve}
+      HOSPITAL_DB_RELOAD_MODE: ${HOSPITAL_DB_RELOAD_MODE:-force}
     ports:
       - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "hospital-db-healthcheck.sh"]
       start_period: 120s
@@ -38,7 +36,3 @@ services:
       HOSPITAL_QUERY_UI_PORT: 8765
     ports:
       - "8765:8765"
-
-volumes:
-  db_data:
-    name: hospital_db_data

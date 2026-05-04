@@ -13,10 +13,9 @@ The MariaDB image already contains:
 - the data-loading script: `sql/load.sql`
 - all CSV reference datasets from `docs/*.csv`
 
-No manual SQL execution is needed.
-
-The database data is persisted in the named Docker volume `hospital_db_data`,
-so normal restarts reuse the existing data by default.
+No manual SQL execution is needed. The compose setup does not define a Docker
+volume for MariaDB data, and the database service reloads the schema and sample
+data on startup by default.
 
 ## Directory Structure
 
@@ -63,7 +62,7 @@ docker compose up --build
 What happens on the first run:
 
 1. Docker builds the MariaDB and query UI images.
-2. MariaDB starts with an empty volume.
+2. MariaDB starts with an empty data directory.
 3. `install.sql` creates the `hospital` schema.
 4. `load.sql` loads the CSV reference data and generates the sample operational data.
 5. After the database is healthy, the query UI starts.
@@ -86,7 +85,7 @@ Expected log messages:
 docker compose up
 ```
 
-This reuses the existing `hospital_db_data` volume and does not reload the SQL.
+This starts MariaDB and reloads `install.sql` and `load.sql` by default.
 The UI will be available at:
 
 ```text
@@ -99,14 +98,15 @@ http://127.0.0.1:8765
 docker compose down
 ```
 
-This stops the container and keeps the database volume.
+This stops and removes the compose containers. The next `docker compose up`
+starts MariaDB again and reloads the database.
 
 ### 4. Full reset
 
-Use this when you want to destroy everything and reinitialize from scratch:
+Use this when you want to rebuild the images and reinitialize from scratch:
 
 ```bash
-docker compose down -v
+docker compose down
 docker compose up --build
 ```
 
@@ -172,16 +172,16 @@ The service supports a reload policy through the environment variable
 It is already wired in `docker-compose.yml` like this:
 
 ```yaml
-HOSPITAL_DB_RELOAD_MODE: ${HOSPITAL_DB_RELOAD_MODE:-preserve}
+HOSPITAL_DB_RELOAD_MODE: ${HOSPITAL_DB_RELOAD_MODE:-force}
 ```
 
 Available modes:
 
 | Mode | Behavior |
 |---|---|
-| `preserve` | Default. Reuse the existing persisted database and skip reloads. |
+| `preserve` | Reuse the existing container data directory and skip reloads. |
 | `checksum` | Reload only if the built SQL fingerprint changed since the last successful load. |
-| `force` | Always rerun `install.sql` and `load.sql` even if a database volume already exists. |
+| `force` | Default. Always rerun `install.sql` and `load.sql` on startup. |
 
 ### Default behavior
 
@@ -192,7 +192,7 @@ docker compose up
 Equivalent to:
 
 ```bash
-HOSPITAL_DB_RELOAD_MODE=preserve docker compose up
+HOSPITAL_DB_RELOAD_MODE=force docker compose up
 ```
 
 ### Reload only when SQL changes
@@ -204,17 +204,16 @@ HOSPITAL_DB_RELOAD_MODE=checksum docker compose up --build
 ```
 
 The image stores a checksum of the SQL files at build time. After a successful
-load, that checksum is saved in the data volume. On the next startup, the
+load, that checksum is saved in the data directory. On the next startup, the
 container compares them and reloads only if they differ.
 
-### Force a reload into the existing volume
+### Preserve container data
 
 ```bash
-HOSPITAL_DB_RELOAD_MODE=force docker compose up
+HOSPITAL_DB_RELOAD_MODE=preserve docker compose up
 ```
 
-This keeps the Docker volume itself, but the SQL scripts will drop and recreate
-the `hospital` database contents.
+This skips the SQL reload when the same container already has MariaDB data.
 
 ## Connection Details
 
@@ -288,8 +287,8 @@ these environment variables from `docker-compose.yml`:
 `docker-entrypoint-wrapper.sh` sits in front of the standard MariaDB entrypoint.
 It decides whether this is:
 
-- a true first run with an empty volume
-- a normal restart using persisted data
+- a true first run with an empty data directory
+- a normal restart using existing container data
 - a reload run based on `HOSPITAL_DB_RELOAD_MODE`
 
 It also exports:
@@ -334,8 +333,8 @@ you should rebuild the image:
 docker compose up --build
 ```
 
-If you changed SQL and want the persisted database to be refreshed
-automatically, use:
+The default `force` reload mode refreshes the database on startup. To reload
+only when the built SQL fingerprint changes, use:
 
 ```bash
 HOSPITAL_DB_RELOAD_MODE=checksum docker compose up --build
@@ -362,25 +361,27 @@ handled by the local query console in `code/query_ui/`.
 
 **The database starts but old data is still there**
 
-The default mode is `preserve`. Use one of:
+The default mode is `force`, but `docker compose up` will not restart a service
+that is already running. Restart MariaDB, or bring the stack down and up again:
 
 ```bash
-HOSPITAL_DB_RELOAD_MODE=checksum docker compose up --build
+docker compose restart mariadb
 ```
 
 or:
 
 ```bash
-HOSPITAL_DB_RELOAD_MODE=force docker compose up
+docker compose down
+docker compose up
 ```
 
-**The volume is in a bad state and reload still does not help**
+**An old named volume from the previous compose file still exists**
 
-Do a full reset:
+The current compose file no longer uses `hospital_db_data`. If you want to
+remove that old unused Docker volume, run:
 
 ```bash
-docker compose down -v
-docker compose up --build
+docker volume rm hospital_db_data
 ```
 
 **`LOAD DATA INFILE` fails**

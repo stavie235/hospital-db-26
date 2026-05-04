@@ -450,7 +450,7 @@ BEGIN
         )
         VALUES (
             LPAD(40000000000 + i, 11, '0'),
-            CONCAT('Patient', i),
+            CONCAT('Firstname', i),
             CONCAT('Surname', i),
             CONCAT('Father', 1 + MOD(i, 40)),
             18 + MOD(i, 70),
