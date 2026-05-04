@@ -1029,28 +1029,44 @@ DELIMITER ;
 -- =====================================================
 
 -- Νοσηλείες
-CREATE INDEX idx_hospitalization_patient    ON hospitalization(patient_id);
-CREATE INDEX idx_hospitalization_department ON hospitalization(department_id);
-CREATE INDEX idx_hospitalization_admission  ON hospitalization(admission_date);
+CREATE INDEX idx_hospitalization_patient    ON hospitalization(patient_id);   -- Q03, Q06, Q09: JOIN με patient
+CREATE INDEX idx_hospitalization_department ON hospitalization(department_id); -- Q01, Q03: JOIN με department
+CREATE INDEX idx_hospitalization_admission  ON hospitalization(admission_date); -- Q01, Q09, Q14: GROUP BY YEAR()
+CREATE INDEX idx_hospitalization_ken        ON hospitalization(ken_code);       -- Q01: LEFT JOIN με ken
+CREATE INDEX idx_hospitalization_icd        ON hospitalization(icd10_code);     -- Q06, Q14: LEFT JOIN με ICD10
 
 -- Ιατροί
-CREATE INDEX idx_doctor_specialty ON doctor(specialty);
-CREATE INDEX idx_doctor_rank      ON doctor(`rank`);
+CREATE INDEX idx_doctor_specialty   ON doctor(specialty);                -- Q02, Q05: WHERE/GROUP BY specialty
+CREATE INDEX idx_doctor_rank        ON doctor(`rank`);                   -- Q13: ιεραρχία εποπτείας ανά rank
+CREATE INDEX idx_doctor_supervisor  ON doctor(supervisor_id);           -- Q13: recursive CTE JOIN ON supervisor_id
 
 -- Βάρδιες
-CREATE INDEX idx_shift_date ON shift(shift_date);
+CREATE INDEX idx_shift_date      ON shift(shift_date);                          -- Q08, Q12: WHERE/BETWEEN shift_date
+CREATE INDEX idx_shift_dept_date ON shift(department_id, shift_date);           -- Q08, Q12: composite φίλτρο dept+ημερομηνία
+CREATE INDEX idx_shift_assignment_staff ON shift_assignment(staff_id);          -- Q02, Q08, Q12: JOIN staff σε βάρδιες
 
 -- Εξετάσεις & Επεμβάσεις
-CREATE INDEX idx_lab_test_hospitalization ON lab_test(hospitalization_id);
-CREATE INDEX idx_procedure_surgeon       ON medical_procedure(primary_surgeon_id);
+CREATE INDEX idx_lab_test_hospitalization ON lab_test(hospitalization_id);      -- γενικό JOIN
+CREATE INDEX idx_procedure_surgeon        ON medical_procedure(primary_surgeon_id); -- Q02, Q05, Q11: JOIN χειρουργός
+CREATE INDEX idx_procedure_start_time     ON medical_procedure(start_time);     -- Q02, Q11: YEAR(start_time) φίλτρο
 
--- Φάρμακα
-CREATE INDEX idx_drug_name ON drug(drug_name);
+-- Προσωπικό
+CREATE INDEX idx_staff_age ON staff(age);                                        -- Q05: WHERE age < 35 (range query)
+
+-- Φάρμακα & Ουσίες
+CREATE INDEX idx_drug_name               ON drug(drug_name);                    -- load.sql: JOIN κατά φόρτωση
+CREATE INDEX idx_drug_substance_drug     ON drug_substance(drug_id);            -- Q10: JOIN ds ON drug_id (148k rows)
+CREATE INDEX idx_drug_substance_substance ON drug_substance(substance_id);      -- Q07, Q10: JOIN ds ON substance_id
 
 -- Συνταγογράφηση
-CREATE INDEX idx_prescription_patient ON prescription(patient_id);
-CREATE INDEX idx_prescription_doctor  ON prescription(doctor_id);
+CREATE INDEX idx_prescription_patient      ON prescription(patient_id);         -- Q10: JOIN συνταγές ίδιου ασθενή
+CREATE INDEX idx_prescription_doctor       ON prescription(doctor_id);          -- trigger: έλεγχος συνταγογράφησης
+CREATE INDEX idx_prescription_hospitalization ON prescription(hospitalization_id); -- Q10: self-join ON hospitalization_id
 
--- Triage & Αξιολογήσεις
-CREATE INDEX idx_triage_urgency             ON triage_record(urgency_level);
-CREATE INDEX idx_evaluation_hospitalization ON evaluation(hospitalization_id);
+-- Αλλεργίες
+CREATE INDEX idx_patient_allergy_substance ON patient_allergy(substance_id);    -- Q07: JOIN ουσία-αλλεργία
+
+-- Αξιολογήσεις
+CREATE INDEX idx_triage_urgency             ON triage_record(urgency_level);    -- Q15: GROUP BY urgency_level
+CREATE INDEX idx_evaluation_hospitalization ON evaluation(hospitalization_id);  -- Q04, Q06: JOIN αξιολόγηση
+CREATE INDEX idx_doctor_evaluation_doctor   ON doctor_evaluation(doctor_id);    -- Q04: JOIN αξιολόγηση γιατρού
