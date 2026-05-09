@@ -1,0 +1,7 @@
++------------------------------------------+---------------------+-------------------------+-------------+
+| substance_pair                           | substance_1         | substance_2             | occurrences |
++------------------------------------------+---------------------+-------------------------+-------------+
+| Acetylcysteine + Alfuzosin Hydrochloride | Acetylcysteine      | Alfuzosin Hydrochloride |           5 |
+| Abacavir + Agomelatine                   | Abacavir            | Agomelatine             |           2 |
+| Abiraterone Acetate + Isotretinoin       | Abiraterone Acetate | Isotretinoin            |           2 |
++------------------------------------------+---------------------+-------------------------+-------------+

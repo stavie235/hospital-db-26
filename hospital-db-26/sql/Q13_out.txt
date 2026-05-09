@@ -1,0 +1,114 @@
++-----------+-----------------------+-------------------+---------------------+-----------------------+-------------------------+
+| doctor_id | doctor                | supervision_level | supervisor_staff_id | supervisor            | supervisor_rank         |
++-----------+-----------------------+-------------------+---------------------+-----------------------+-------------------------+
+|        16 | Firstname16 Surname16 |                 1 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        17 | Firstname17 Surname17 |                 1 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        18 | Firstname18 Surname18 |                 1 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        19 | Firstname19 Surname19 |                 1 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        20 | Firstname20 Surname20 |                 1 |                   5 | Firstname5 Surname5   | Διευθυντής              |
+|        21 | Firstname21 Surname21 |                 1 |                   6 | Firstname6 Surname6   | Διευθυντής              |
+|        22 | Firstname22 Surname22 |                 1 |                   7 | Firstname7 Surname7   | Διευθυντής              |
+|        23 | Firstname23 Surname23 |                 1 |                   8 | Firstname8 Surname8   | Διευθυντής              |
+|        24 | Firstname24 Surname24 |                 1 |                   9 | Firstname9 Surname9   | Διευθυντής              |
+|        25 | Firstname25 Surname25 |                 1 |                  10 | Firstname10 Surname10 | Διευθυντής              |
+|        26 | Firstname26 Surname26 |                 1 |                  11 | Firstname11 Surname11 | Διευθυντής              |
+|        27 | Firstname27 Surname27 |                 1 |                  12 | Firstname12 Surname12 | Διευθυντής              |
+|        28 | Firstname28 Surname28 |                 1 |                  13 | Firstname13 Surname13 | Διευθυντής              |
+|        29 | Firstname29 Surname29 |                 1 |                  14 | Firstname14 Surname14 | Διευθυντής              |
+|        30 | Firstname30 Surname30 |                 1 |                  15 | Firstname15 Surname15 | Διευθυντής              |
+|        31 | Firstname31 Surname31 |                 1 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        32 | Firstname32 Surname32 |                 1 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        33 | Firstname33 Surname33 |                 1 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        34 | Firstname34 Surname34 |                 1 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        35 | Firstname35 Surname35 |                 1 |                   5 | Firstname5 Surname5   | Διευθυντής              |
+|        36 | Firstname36 Surname36 |                 1 |                  16 | Firstname16 Surname16 | Επιμελητής Α            |
+|        36 | Firstname36 Surname36 |                 2 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        37 | Firstname37 Surname37 |                 1 |                  17 | Firstname17 Surname17 | Επιμελητής Α            |
+|        37 | Firstname37 Surname37 |                 2 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        38 | Firstname38 Surname38 |                 1 |                  18 | Firstname18 Surname18 | Επιμελητής Α            |
+|        38 | Firstname38 Surname38 |                 2 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        39 | Firstname39 Surname39 |                 1 |                  19 | Firstname19 Surname19 | Επιμελητής Α            |
+|        39 | Firstname39 Surname39 |                 2 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        40 | Firstname40 Surname40 |                 1 |                  20 | Firstname20 Surname20 | Επιμελητής Α            |
+|        40 | Firstname40 Surname40 |                 2 |                   5 | Firstname5 Surname5   | Διευθυντής              |
+|        41 | Firstname41 Surname41 |                 1 |                  21 | Firstname21 Surname21 | Επιμελητής Α            |
+|        41 | Firstname41 Surname41 |                 2 |                   6 | Firstname6 Surname6   | Διευθυντής              |
+|        42 | Firstname42 Surname42 |                 1 |                  22 | Firstname22 Surname22 | Επιμελητής Α            |
+|        42 | Firstname42 Surname42 |                 2 |                   7 | Firstname7 Surname7   | Διευθυντής              |
+|        43 | Firstname43 Surname43 |                 1 |                  23 | Firstname23 Surname23 | Επιμελητής Α            |
+|        43 | Firstname43 Surname43 |                 2 |                   8 | Firstname8 Surname8   | Διευθυντής              |
+|        44 | Firstname44 Surname44 |                 1 |                  24 | Firstname24 Surname24 | Επιμελητής Α            |
+|        44 | Firstname44 Surname44 |                 2 |                   9 | Firstname9 Surname9   | Διευθυντής              |
+|        45 | Firstname45 Surname45 |                 1 |                  25 | Firstname25 Surname25 | Επιμελητής Α            |
+|        45 | Firstname45 Surname45 |                 2 |                  10 | Firstname10 Surname10 | Διευθυντής              |
+|        46 | Firstname46 Surname46 |                 1 |                  26 | Firstname26 Surname26 | Επιμελητής Α            |
+|        46 | Firstname46 Surname46 |                 2 |                  11 | Firstname11 Surname11 | Διευθυντής              |
+|        47 | Firstname47 Surname47 |                 1 |                  27 | Firstname27 Surname27 | Επιμελητής Α            |
+|        47 | Firstname47 Surname47 |                 2 |                  12 | Firstname12 Surname12 | Διευθυντής              |
+|        48 | Firstname48 Surname48 |                 1 |                  28 | Firstname28 Surname28 | Επιμελητής Α            |
+|        48 | Firstname48 Surname48 |                 2 |                  13 | Firstname13 Surname13 | Διευθυντής              |
+|        49 | Firstname49 Surname49 |                 1 |                  29 | Firstname29 Surname29 | Επιμελητής Α            |
+|        49 | Firstname49 Surname49 |                 2 |                  14 | Firstname14 Surname14 | Διευθυντής              |
+|        50 | Firstname50 Surname50 |                 1 |                  30 | Firstname30 Surname30 | Επιμελητής Α            |
+|        50 | Firstname50 Surname50 |                 2 |                  15 | Firstname15 Surname15 | Διευθυντής              |
+|        51 | Firstname51 Surname51 |                 1 |                  31 | Firstname31 Surname31 | Επιμελητής Α            |
+|        51 | Firstname51 Surname51 |                 2 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        52 | Firstname52 Surname52 |                 1 |                  32 | Firstname32 Surname32 | Επιμελητής Α            |
+|        52 | Firstname52 Surname52 |                 2 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        53 | Firstname53 Surname53 |                 1 |                  33 | Firstname33 Surname33 | Επιμελητής Α            |
+|        53 | Firstname53 Surname53 |                 2 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        54 | Firstname54 Surname54 |                 1 |                  34 | Firstname34 Surname34 | Επιμελητής Α            |
+|        54 | Firstname54 Surname54 |                 2 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        55 | Firstname55 Surname55 |                 1 |                  35 | Firstname35 Surname35 | Επιμελητής Α            |
+|        55 | Firstname55 Surname55 |                 2 |                   5 | Firstname5 Surname5   | Διευθυντής              |
+|        56 | Firstname56 Surname56 |                 1 |                  16 | Firstname16 Surname16 | Επιμελητής Α            |
+|        56 | Firstname56 Surname56 |                 2 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        57 | Firstname57 Surname57 |                 1 |                  17 | Firstname17 Surname17 | Επιμελητής Α            |
+|        57 | Firstname57 Surname57 |                 2 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        58 | Firstname58 Surname58 |                 1 |                  18 | Firstname18 Surname18 | Επιμελητής Α            |
+|        58 | Firstname58 Surname58 |                 2 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        59 | Firstname59 Surname59 |                 1 |                  19 | Firstname19 Surname19 | Επιμελητής Α            |
+|        59 | Firstname59 Surname59 |                 2 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        60 | Firstname60 Surname60 |                 1 |                  20 | Firstname20 Surname20 | Επιμελητής Α            |
+|        60 | Firstname60 Surname60 |                 2 |                   5 | Firstname5 Surname5   | Διευθυντής              |
+|        61 | Firstname61 Surname61 |                 1 |                  21 | Firstname21 Surname21 | Επιμελητής Α            |
+|        61 | Firstname61 Surname61 |                 2 |                   6 | Firstname6 Surname6   | Διευθυντής              |
+|        62 | Firstname62 Surname62 |                 1 |                  22 | Firstname22 Surname22 | Επιμελητής Α            |
+|        62 | Firstname62 Surname62 |                 2 |                   7 | Firstname7 Surname7   | Διευθυντής              |
+|        63 | Firstname63 Surname63 |                 1 |                  23 | Firstname23 Surname23 | Επιμελητής Α            |
+|        63 | Firstname63 Surname63 |                 2 |                   8 | Firstname8 Surname8   | Διευθυντής              |
+|        64 | Firstname64 Surname64 |                 1 |                  24 | Firstname24 Surname24 | Επιμελητής Α            |
+|        64 | Firstname64 Surname64 |                 2 |                   9 | Firstname9 Surname9   | Διευθυντής              |
+|        65 | Firstname65 Surname65 |                 1 |                  25 | Firstname25 Surname25 | Επιμελητής Α            |
+|        65 | Firstname65 Surname65 |                 2 |                  10 | Firstname10 Surname10 | Διευθυντής              |
+|        66 | Firstname66 Surname66 |                 1 |                  26 | Firstname26 Surname26 | Επιμελητής Α            |
+|        66 | Firstname66 Surname66 |                 2 |                  11 | Firstname11 Surname11 | Διευθυντής              |
+|        67 | Firstname67 Surname67 |                 1 |                  27 | Firstname27 Surname27 | Επιμελητής Α            |
+|        67 | Firstname67 Surname67 |                 2 |                  12 | Firstname12 Surname12 | Διευθυντής              |
+|        68 | Firstname68 Surname68 |                 1 |                  28 | Firstname28 Surname28 | Επιμελητής Α            |
+|        68 | Firstname68 Surname68 |                 2 |                  13 | Firstname13 Surname13 | Διευθυντής              |
+|        69 | Firstname69 Surname69 |                 1 |                  29 | Firstname29 Surname29 | Επιμελητής Α            |
+|        69 | Firstname69 Surname69 |                 2 |                  14 | Firstname14 Surname14 | Διευθυντής              |
+|        70 | Firstname70 Surname70 |                 1 |                  30 | Firstname30 Surname30 | Επιμελητής Α            |
+|        70 | Firstname70 Surname70 |                 2 |                  15 | Firstname15 Surname15 | Διευθυντής              |
+|        71 | Firstname71 Surname71 |                 1 |                  31 | Firstname31 Surname31 | Επιμελητής Α            |
+|        71 | Firstname71 Surname71 |                 2 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        72 | Firstname72 Surname72 |                 1 |                  32 | Firstname32 Surname32 | Επιμελητής Α            |
+|        72 | Firstname72 Surname72 |                 2 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        73 | Firstname73 Surname73 |                 1 |                  33 | Firstname33 Surname33 | Επιμελητής Α            |
+|        73 | Firstname73 Surname73 |                 2 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        74 | Firstname74 Surname74 |                 1 |                  34 | Firstname34 Surname34 | Επιμελητής Α            |
+|        74 | Firstname74 Surname74 |                 2 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        75 | Firstname75 Surname75 |                 1 |                  35 | Firstname35 Surname35 | Επιμελητής Α            |
+|        75 | Firstname75 Surname75 |                 2 |                   5 | Firstname5 Surname5   | Διευθυντής              |
+|        76 | Firstname76 Surname76 |                 1 |                  16 | Firstname16 Surname16 | Επιμελητής Α            |
+|        76 | Firstname76 Surname76 |                 2 |                   1 | Firstname1 Surname1   | Διευθυντής              |
+|        77 | Firstname77 Surname77 |                 1 |                  17 | Firstname17 Surname17 | Επιμελητής Α            |
+|        77 | Firstname77 Surname77 |                 2 |                   2 | Firstname2 Surname2   | Διευθυντής              |
+|        78 | Firstname78 Surname78 |                 1 |                  18 | Firstname18 Surname18 | Επιμελητής Α            |
+|        78 | Firstname78 Surname78 |                 2 |                   3 | Firstname3 Surname3   | Διευθυντής              |
+|        79 | Firstname79 Surname79 |                 1 |                  19 | Firstname19 Surname19 | Επιμελητής Α            |
+|        79 | Firstname79 Surname79 |                 2 |                   4 | Firstname4 Surname4   | Διευθυντής              |
+|        80 | Firstname80 Surname80 |                 1 |                  20 | Firstname20 Surname20 | Επιμελητής Α            |
+|        80 | Firstname80 Surname80 |                 2 |                   5 | Firstname5 Surname5   | Διευθυντής              |
++-----------+-----------------------+-------------------+---------------------+-----------------------+-------------------------+

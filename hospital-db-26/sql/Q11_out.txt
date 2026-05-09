@@ -1,0 +1,54 @@
++----------+-----------------------+-------------------------+-----------------------------+-----------------------+
+| staff_id | doctor                | current_year_procedures | top_current_year_procedures | procedures_behind_top |
++----------+-----------------------+-------------------------+-----------------------------+-----------------------+
+|       31 | Firstname31 Surname31 |                       0 |                           5 |                     5 |
+|       32 | Firstname32 Surname32 |                       0 |                           5 |                     5 |
+|       33 | Firstname33 Surname33 |                       0 |                           5 |                     5 |
+|       34 | Firstname34 Surname34 |                       0 |                           5 |                     5 |
+|       35 | Firstname35 Surname35 |                       0 |                           5 |                     5 |
+|       36 | Firstname36 Surname36 |                       0 |                           5 |                     5 |
+|       37 | Firstname37 Surname37 |                       0 |                           5 |                     5 |
+|       38 | Firstname38 Surname38 |                       0 |                           5 |                     5 |
+|       39 | Firstname39 Surname39 |                       0 |                           5 |                     5 |
+|       40 | Firstname40 Surname40 |                       0 |                           5 |                     5 |
+|       41 | Firstname41 Surname41 |                       0 |                           5 |                     5 |
+|       42 | Firstname42 Surname42 |                       0 |                           5 |                     5 |
+|       43 | Firstname43 Surname43 |                       0 |                           5 |                     5 |
+|       44 | Firstname44 Surname44 |                       0 |                           5 |                     5 |
+|       45 | Firstname45 Surname45 |                       0 |                           5 |                     5 |
+|       46 | Firstname46 Surname46 |                       0 |                           5 |                     5 |
+|       47 | Firstname47 Surname47 |                       0 |                           5 |                     5 |
+|       48 | Firstname48 Surname48 |                       0 |                           5 |                     5 |
+|       49 | Firstname49 Surname49 |                       0 |                           5 |                     5 |
+|       50 | Firstname50 Surname50 |                       0 |                           5 |                     5 |
+|       51 | Firstname51 Surname51 |                       0 |                           5 |                     5 |
+|       52 | Firstname52 Surname52 |                       0 |                           5 |                     5 |
+|       53 | Firstname53 Surname53 |                       0 |                           5 |                     5 |
+|       54 | Firstname54 Surname54 |                       0 |                           5 |                     5 |
+|       55 | Firstname55 Surname55 |                       0 |                           5 |                     5 |
+|       56 | Firstname56 Surname56 |                       0 |                           5 |                     5 |
+|       57 | Firstname57 Surname57 |                       0 |                           5 |                     5 |
+|       58 | Firstname58 Surname58 |                       0 |                           5 |                     5 |
+|       59 | Firstname59 Surname59 |                       0 |                           5 |                     5 |
+|       60 | Firstname60 Surname60 |                       0 |                           5 |                     5 |
+|       61 | Firstname61 Surname61 |                       0 |                           5 |                     5 |
+|       62 | Firstname62 Surname62 |                       0 |                           5 |                     5 |
+|       63 | Firstname63 Surname63 |                       0 |                           5 |                     5 |
+|       64 | Firstname64 Surname64 |                       0 |                           5 |                     5 |
+|       65 | Firstname65 Surname65 |                       0 |                           5 |                     5 |
+|       66 | Firstname66 Surname66 |                       0 |                           5 |                     5 |
+|       67 | Firstname67 Surname67 |                       0 |                           5 |                     5 |
+|       68 | Firstname68 Surname68 |                       0 |                           5 |                     5 |
+|       69 | Firstname69 Surname69 |                       0 |                           5 |                     5 |
+|       70 | Firstname70 Surname70 |                       0 |                           5 |                     5 |
+|       71 | Firstname71 Surname71 |                       0 |                           5 |                     5 |
+|       72 | Firstname72 Surname72 |                       0 |                           5 |                     5 |
+|       73 | Firstname73 Surname73 |                       0 |                           5 |                     5 |
+|       74 | Firstname74 Surname74 |                       0 |                           5 |                     5 |
+|       75 | Firstname75 Surname75 |                       0 |                           5 |                     5 |
+|       76 | Firstname76 Surname76 |                       0 |                           5 |                     5 |
+|       77 | Firstname77 Surname77 |                       0 |                           5 |                     5 |
+|       78 | Firstname78 Surname78 |                       0 |                           5 |                     5 |
+|       79 | Firstname79 Surname79 |                       0 |                           5 |                     5 |
+|       80 | Firstname80 Surname80 |                       0 |                           5 |                     5 |
++----------+-----------------------+-------------------------+-----------------------------+-----------------------+

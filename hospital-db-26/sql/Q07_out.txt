@@ -1,0 +1,104 @@
++--------------+-------------------------------------------------------------+-------------------+----------------------------+
+| substance_id | substance_name                                              | allergic_patients | drugs_containing_substance |
++--------------+-------------------------------------------------------------+-------------------+----------------------------+
+|           17 | Paracetamol                                                 |                 1 |                       2245 |
+|          544 | Tramadol Hydrochloride                                      |                 1 |                        414 |
+|         1666 | Isoleucine                                                  |                 1 |                        342 |
+|         1683 | Histidine                                                   |                 1 |                        273 |
+|          867 | Vildagliptin                                                |                 1 |                        272 |
+|           68 | Aripiprazole                                                |                 1 |                        218 |
+|          816 | Mirtazapine                                                 |                 1 |                        204 |
+|          272 | Alendronic Acid                                             |                 1 |                        143 |
+|          578 | Betamethasone                                               |                 1 |                        139 |
+|           85 | Magnesium Sulfate Heptahydrate                              |                 1 |                        126 |
+|          442 | Diphenhydramine Hydrochloride                               |                 1 |                        119 |
+|          884 | Meloxicam                                                   |                 1 |                        103 |
+|          850 | Benzalkonium Chloride                                       |                 1 |                         99 |
+|          663 | Ibuprofen Lysine                                            |                 1 |                         98 |
+|          289 | Ursodeoxycholic Acid                                        |                 1 |                         88 |
+|          357 | Isotretinoin                                                |                 1 |                         83 |
+|          748 | Salbutamol Sulfate                                          |                 1 |                         81 |
+|         1751 | Amorolfine Hydrochloride                                    |                 1 |                         80 |
+|         1309 | Articaine Hydrochloride                                     |                 1 |                         80 |
+|          221 | Captopril                                                   |                 1 |                         78 |
+|         1802 | Propranolol Hydrochloride                                   |                 1 |                         78 |
+|          595 | Amitriptyline Hydrochloride                                 |                 1 |                         75 |
+|          459 | Promethazine Hydrochloride                                  |                 1 |                         54 |
+|          612 | Lisdexamfetamine Dimesylate                                 |                 1 |                         53 |
+|         1105 | Dimetindene Maleate                                         |                 1 |                         50 |
+|          340 | Ferrous Gluconate                                           |                 1 |                         44 |
+|         1258 | Olopatadine                                                 |                 1 |                         40 |
+|          425 | Phenoxymethylpenicillin Potassium                           |                 1 |                         39 |
+|         1122 | Cefaclor                                                    |                 1 |                         37 |
+|         1343 | Dydrogesterone                                              |                 1 |                         35 |
+|          952 | Lolium Perenne                                              |                 1 |                         35 |
+|          527 | Aluminium Phosphate                                         |                 1 |                         30 |
+|          561 | Chromium Chloride Hexahydrate                               |                 1 |                         28 |
+|         1377 | Cynodon Dactylon (L.) Pers.                                 |                 1 |                         26 |
+|         1394 | Cupressus Sempervirens                                      |                 1 |                         22 |
+|          476 | Selenium                                                    |                 1 |                         22 |
+|          833 | Lachesis D 12                                               |                 1 |                         19 |
+|         1496 | Menthae Piperitae Herba                                     |                 1 |                         19 |
+|         1462 | Robinia Pseudoacacia L.                                     |                 1 |                         19 |
+|          153 | Hexetidine                                                  |                 1 |                         17 |
+|         1428 | Epicoccum Purpurascens                                      |                 1 |                         16 |
+|           34 | Tranylcypromine                                             |                 1 |                         16 |
+|         1411 | Aureobasidium Pullulans                                     |                 1 |                         15 |
+|         1445 | Mucor Racemosus                                             |                 1 |                         15 |
+|         1479 | Ustilago Holci                                              |                 1 |                         15 |
+|         1292 | Belladonna D6                                               |                 1 |                         14 |
+|          986 | Rhus Toxicodendron Dil. D6                                  |                 1 |                         14 |
+|         1853 | Arnica Montana Dil. D4                                      |                 1 |                         13 |
+|         1989 | Ethylmorphine Hydrochloride                                 |                 1 |                         13 |
+|          901 | Extraction Solvent: Ethanol 60% (M/M)                       |                 1 |                         13 |
+|         1054 | Human Albumin Solution                                      |                 1 |                         13 |
+|          680 | Iodine (123i) Iobenguane                                    |                 1 |                         13 |
+|         1649 | Adalimumab                                                  |                 1 |                         12 |
+|          493 | Risedronate Monosodium                                      |                 1 |                         11 |
+|          204 | Filgrastim                                                  |                 1 |                         10 |
+|          646 | Veratrum Album D4                                           |                 1 |                         10 |
+|          238 | Malic Acid                                                  |                 1 |                          9 |
+|         1224 | Rye Grass Pollen Allergoid                                  |                 1 |                          9 |
+|          187 | Acamprosate Calcium                                         |                 1 |                          8 |
+|         1275 | Bisacodyl Bp                                                |                 1 |                          8 |
+|          136 | Echinacea Dil. D2                                           |                 1 |                          8 |
+|          102 | Isoconazole Nitrate                                         |                 1 |                          8 |
+|          629 | Podophyllum Peltatum D6                                     |                 1 |                          7 |
+|         1241 | Rye Pollen Allergoid                                        |                 1 |                          7 |
+|         1513 | Apple Fruit                                                 |                 1 |                          6 |
+|         1530 | Curry                                                       |                 1 |                          6 |
+|         1156 | Felis Domesticus (555)                                      |                 1 |                          6 |
+|         1632 | Sepia Officinalis Trit. D4                                  |                 1 |                          6 |
+|         1173 | Dermatophagoides Farinae (504)                              |                 1 |                          5 |
+|         1700 | Glycyl-Tyrosine                                             |                 1 |                          5 |
+|          306 | Icosapent Ethyl                                             |                 1 |                          5 |
+|         1564 | Soy                                                         |                 1 |                          5 |
+|         1207 | Cardiospermum Halicacabum D4                                |                 1 |                          4 |
+|         1785 | Clomipramine                                                |                 1 |                          4 |
+|         2006 | Dry Extract From Liquorice Root (3-4:1)                     |                 1 |                          4 |
+|         1955 | Rifabutin                                                   |                 1 |                          4 |
+|         1020 | Apis Mellifica D3                                           |                 1 |                          3 |
+|          969 | Carbo Vegetabilis                                           |                 1 |                          3 |
+|         2040 | Cetrimide Ph. Eur.                                          |                 1 |                          3 |
+|          119 | Extract Of Phoradendron Leucarpum Herb (1:50)               |                 1 |                          3 |
+|          374 | Gnaphalium Polycephalum Dil. D4                             |                 1 |                          3 |
+|         1904 | Horse-Radish Root                                           |                 1 |                          3 |
+|          918 | Matricaria Recutita                                         |                 1 |                          3 |
+|         1581 | Pepper                                                      |                 1 |                          3 |
+|          323 | Acidum Formicicum Dil D12                                   |                 1 |                          2 |
+|          765 | Aesculus Hippocastanum E Semine La 25% Sicc. (Hab, Vs. 12m) |                 1 |                          2 |
+|         1615 | Artemisia Absinthium                                        |                 1 |                          2 |
+|          170 | Artemisia Absinthium Ex Herba Siccata                       |                 1 |                          2 |
+|         1870 | Aurum Chloratum Dil D4                                      |                 1 |                          2 |
+|         1139 | Clonixin Lysinate                                           |                 1 |                          2 |
+|           51 | Extraction Solvent: Ethanol 20% (V/V)                       |                 1 |                          2 |
+|          391 | Ferrum Phosphoricum Trit D 2                                |                 1 |                          2 |
+|         1190 | Glycine Max (778)                                           |                 1 |                          2 |
+|         2023 | Paris Quadrifolia Trit. D4                                  |                 1 |                          2 |
+|         1972 | Schoenocaulon Officinale D6                                 |                 1 |                          2 |
+|          408 | Aconitum Napellus Dil. D30                                  |                 1 |                          1 |
+|          782 | Aesculus Hippocastanum Dil. D200                            |                 1 |                          1 |
+|         1717 | Aminophylline Hydrate Bp                                    |                 1 |                          1 |
+|         1734 | Amlodipine Mesilate Monohydrate                             |                 1 |                          1 |
+|         1819 | Androstanolone                                              |                 1 |                          1 |
++--------------+-------------------------------------------------------------+-------------------+----------------------------+
