@@ -852,13 +852,43 @@ BEGIN
 END //
 DELIMITER ;
 
--- =====================================================
--- ΣΗΜΕΙΩΣΗ: Ο κανόνας ελάχιστης στελέχωσης βάρδιας
--- (≥3 ιατροί, ≥6 νοσηλευτές, ≥2 διοικητικοί) δεν
--- επιβάλλεται μέσω trigger γιατί δεν είναι γνωστό
--- πότε ολοκληρώνεται η καταχώρηση της βάρδιας.
--- Εφαρμόζεται σε επίπεδο εφαρμογής (application layer).
--- =====================================================
+-- Κανόνας 5: Ελάχιστη στελέχωση βάρδιας (≥3 ιατροί, ≥6 νοσηλευτές, ≥2 διοικητικοί)
+-- Επιβάλλεται BEFORE DELETE: μόλις η βάρδια φτάσει σε έγκυρη στελέχωση,
+-- η αφαίρεση προσωπικού που θα την υποβαθμίσει κάτω από τα ελάχιστα μπλοκάρεται.
+DELIMITER //
+CREATE TRIGGER trg_shift_min_staffing
+BEFORE DELETE ON shift_assignment
+FOR EACH ROW
+BEGIN
+    DECLARE v_staff_type VARCHAR(20);
+    DECLARE v_remaining  INT DEFAULT 0;
+
+    SELECT staff_type INTO v_staff_type
+    FROM staff WHERE staff_id = OLD.staff_id;
+
+    SELECT COUNT(*) INTO v_remaining
+    FROM shift_assignment sa
+    JOIN staff s ON sa.staff_id = s.staff_id
+    WHERE sa.shift_id  = OLD.shift_id
+      AND sa.staff_id != OLD.staff_id
+      AND s.staff_type = v_staff_type;
+
+    IF v_staff_type = 'doctor' AND v_remaining < 3 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Αφαίρεση αδύνατη: η βάρδια δεν θα πληροί τον ελάχιστο αριθμό ιατρών (≥3)';
+    END IF;
+
+    IF v_staff_type = 'nurse' AND v_remaining < 6 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Αφαίρεση αδύνατη: η βάρδια δεν θα πληροί τον ελάχιστο αριθμό νοσηλευτών (≥6)';
+    END IF;
+
+    IF v_staff_type = 'administrative' AND v_remaining < 2 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Αφαίρεση αδύνατη: η βάρδια δεν θα πληροί τον ελάχιστο αριθμό διοικητικών (≥2)';
+    END IF;
+END //
+DELIMITER ;
 
 -- =====================================================
 -- Επεμβάσεις: ταυτόχρονη χρήση χώρου & ιατρού
