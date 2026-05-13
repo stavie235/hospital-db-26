@@ -87,17 +87,13 @@ class TestRestPeriod:
         with pytest.raises(Exception, match="45000|1644|ανάπαυσης"):
             assign_shift(cur, shift_id=s2, staff_id=doctor)
 
-    def test_morning_then_next_morning_is_rejected(self, cur, dept):
-        """Morning day 1 → morning day 2: 16h apart is fine, but morning day 1 ends at 15:00,
-        next morning starts at 07:00 → only 16h gap (>8h) so it IS allowed.
-        Actually 15:00 + 8h = 23:00 > 07:00 next day → CONFLICT."""
+    def test_morning_then_next_morning_is_allowed(self, cur, dept):
+        """Morning day 1 ends 15:00 → morning day 2 starts 07:00: gap = 16h ≥ 8h → allowed."""
         doctor = insert_director(cur)
         s1 = insert_shift(cur, department_id=dept, shift_date="2025-11-03", shift_type="morning")
         assign_shift(cur, shift_id=s1, staff_id=doctor)
         s2 = insert_shift(cur, department_id=dept, shift_date="2025-11-04", shift_type="morning")
-        # morning end 15:00 + 8h = 23:00; next morning start 07:00 → 23:00 > 07:00 → conflict
-        with pytest.raises(Exception, match="45000|1644|ανάπαυσης"):
-            assign_shift(cur, shift_id=s2, staff_id=doctor)
+        assign_shift(cur, shift_id=s2, staff_id=doctor)  # must not raise
 
     def test_afternoon_then_morning_two_days_later_is_allowed(self, cur, dept):
         """Afternoon day 1 (ends 23:00) + 8h = 07:00 day 2; morning day 3 starts 07:00 → OK."""
@@ -136,8 +132,8 @@ class TestConsecutiveNights:
             s = insert_shift(cur, department_id=dept, shift_date=f"2025-12-{day:02d}", shift_type="night")
             assign_shift(cur, shift_id=s, staff_id=doctor)
 
-        # Day 18 is a morning (gap), day 19 starts a new night sequence
-        s_gap = insert_shift(cur, department_id=dept, shift_date="2025-12-18", shift_type="morning")
+        # Day 18 gap: night Dec 17 ends 07:00 Dec 18; afternoon starts 15:00 = exactly 8h rest → allowed
+        s_gap = insert_shift(cur, department_id=dept, shift_date="2025-12-18", shift_type="afternoon")
         assign_shift(cur, shift_id=s_gap, staff_id=doctor)
 
         s19 = insert_shift(cur, department_id=dept, shift_date="2025-12-19", shift_type="night")
