@@ -8,7 +8,7 @@
 
 ![ER Diagram](diagrams/er-diagram-hospital-latest-2.drawio.png)
 
-Διαθέσιμο και σε PDF: [diagrams/er.pdf](diagrams/er.pdf)
+
 
 ---
 
@@ -18,34 +18,34 @@
 
 ---
 
-## Πώς να τρέξεις το project
+## How to setup the DB
 
-### Προαπαιτούμενα
+### Prerequisites
 
-- [Docker](https://www.docker.com/) και Docker Compose
+- [Docker](https://www.docker.com/) and Docker Compose
 
-### 1. Πρώτη εκκίνηση
+### 1. Initial start
 
 ```bash
 cd code
 docker compose up --build
 ```
 
-Η εκκίνηση δημιουργεί αυτόματα το schema (`install.sql`) και φορτώνει τα δεδομένα (`load.sql`). Διαρκεί μερικά λεπτά.
+Initialisation automatically creates the schema (`install.sql`) and loads the data (`load.sql`). Duration : a couple of minutes
 
-### 2. Κανονική επανεκκίνηση
+### 2. Normal restart
 
 ```bash
 docker compose up
 ```
 
-### 3. Διακοπή
+### 3. Break
 
 ```bash
 docker compose down
 ```
 
-### 4. Πλήρης επαναφορά (rebuild)
+### 4. Rebuild
 
 ```bash
 docker compose down
@@ -54,15 +54,15 @@ docker compose up --build
 
 ### 5. Query UI
 
-Μετά την εκκίνηση, άνοιξε στον browser:
+After start open in browser:
 
 ```
 http://127.0.0.1:8765
 ```
 
-Περιλαμβάνει SQL editor, schema browser και 15 αποθηκευμένα ερωτήματα ανάλυσης.
+Contains SQL editor, schema browser and 15 saved queries.
 
-### 6. Σύνδεση με MySQL client
+### 6. Connect to MySQL client
 
 ```
 Host:     127.0.0.1
@@ -76,7 +76,7 @@ Database: hospital
 docker exec -it hospital_db mariadb -uroot -proot hospital
 ```
 
-### 7. Επαλήθευση φόρτωσης
+### 7. Loading verification
 
 ```bash
 ./verify_db.sh
@@ -84,12 +84,12 @@ docker exec -it hospital_db mariadb -uroot -proot hospital
 
 ---
 
-## Παραδοχές
+## Assumptions
 
-| # | Περιορισμός | Παραδοχή |
+| # | Constraint | Assumption |
 | - | --- | --- |
-| 1 | Ελάχιστη στελέχωση βάρδιας (≥3 ιατροί, ≥6 νοσηλευτές, ≥2 διοικητικοί) | Επιβάλλεται μέσω BEFORE DELETE trigger (`trg_shift_min_staffing`) στον πίνακα `shift_assignment`. Καθώς η βάρδια στελεχώνεται σταδιακά (ένα INSERT ανά μέλος), ο έλεγχος στο INSERT είναι αδύνατος. Αντ' αυτού, μόλις η βάρδια φτάσει σε έγκυρη στελέχωση, η αφαίρεση προσωπικού που θα τη ρίξει κάτω από τα ελάχιστα μπλοκάρεται αυτόματα. Ο χειριστής οφείλει να διασφαλίσει ότι η βάρδια φτάνει την ελάχιστη στελέχωση πριν τεθεί σε ισχύ. |
-| 2 | FIFO triage | Δεν απαιτεί constraint στη βάση. Η βάση αποθηκεύει `urgency_level` και `arrival_time`. Η σωστή σειρά εξυπηρέτησης εξασφαλίζεται με `ORDER BY urgency_level ASC, arrival_time ASC`. |
-| 3 | Φάρμακα EMA Article 57 | Αφαιρέθηκαν φάρμακα με ελλιπή ή λανθασμένα substance names (fragments λόγω κακής ποιότητας δεδομένων στην πηγή). Αν ένα φάρμακο είχε έστω μία περίεργη ουσία, αφαιρέθηκε ολόκληρο ώστε κάθε φάρμακο να έχει πλήρη λίστα δραστικών ουσιών. Η εκφώνηση επιτρέπει ρητά απλοποίηση των δραστικών ουσιών. |
-| 4 | `drug.description` | Χρησιμοποιείται για route of administration (π.χ. "Oral Use") όπως παρέχεται από το Excel της EMA, όχι για κειμενική περιγραφή του φαρμάκου. |
-| 5 | `drug.ema_code` | Το πεδίο υπάρχει στο schema αλλά δεν φορτώνεται γιατί το Excel της EMA δεν παρέχει μοναδικό κωδικό ανά προϊόν. |
+| 1 | Minimum shift staffing (≥3 doctors, ≥6 nurses, ≥2 administrative staff) | Enforced via a BEFORE DELETE trigger (`trg_shift_min_staffing`) on the `shift_assignment` table. Since a shift is staffed incrementally (one INSERT per member), checking the constraint on INSERT is not feasible. Instead, once a shift reaches valid staffing levels, any removal that would drop it below the minimums is automatically blocked. The operator is responsible for ensuring the shift reaches minimum staffing before it goes into effect. |
+| 2 | FIFO triage | No database constraint required. The database stores `urgency_level` and `arrival_time`. The correct service order is ensured with `ORDER BY urgency_level ASC, arrival_time ASC`. |
+| 3 | EMA Article 57 drugs | Drugs with incomplete or malformed substance names (fragments due to poor data quality in the source) were removed. If a drug had even one suspicious substance, the entire drug entry was removed so that every drug has a complete list of active substances. The assignment explicitly permits simplification of active substances. |
+| 4 | `drug.description` | Used for route of administration (e.g. "Oral Use") as provided by the EMA Excel file, not for a textual description of the drug. |
+| 5 | `drug.ema_code` | The field exists in the schema but is not populated because the EMA Excel file does not provide a unique code per product. |
