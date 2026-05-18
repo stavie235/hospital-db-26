@@ -38,6 +38,22 @@ const elements = {
   visualization: document.getElementById("visualization"),
   jsonOutput: document.getElementById("json-output"),
   queryNotes: document.getElementById("query-notes"),
+  newQuery: document.getElementById("new-query"),
+  modalBackdrop: document.getElementById("query-modal-backdrop"),
+  modalTitle: document.getElementById("modal-title"),
+  modalQueryId: document.getElementById("modal-query-id"),
+  modalTitleInput: document.getElementById("modal-title-input"),
+  modalCategoryInput: document.getElementById("modal-category-input"),
+  modalCategoryList: document.getElementById("modal-category-list"),
+  modalDescriptionInput: document.getElementById("modal-description-input"),
+  modalSqlInput: document.getElementById("modal-sql-input"),
+  modalVizType: document.getElementById("modal-viz-type"),
+  modalVizXKey: document.getElementById("modal-viz-xkey"),
+  modalVizYKeys: document.getElementById("modal-viz-ykeys"),
+  modalSave: document.getElementById("modal-save"),
+  modalCancel: document.getElementById("modal-cancel"),
+  modalClose: document.getElementById("modal-close"),
+  modalDelete: document.getElementById("modal-delete"),
   tabs: Array.from(document.querySelectorAll(".tab")),
   tabPanels: {
     table: document.getElementById("table-tab"),
@@ -134,6 +150,36 @@ function renderSavedQueries() {
         button.classList.add("is-active");
       }
       button.addEventListener("click", () => applyActiveQuery(query.id));
+
+      if (query.id.startsWith("custom-")) {
+        const actions = document.createElement("div");
+        actions.className = "saved-query-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "icon-button";
+        editBtn.type = "button";
+        editBtn.title = "Edit query";
+        editBtn.innerHTML = "&#9998;";
+        editBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openEditQueryModal(query.id);
+        });
+        actions.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "icon-button icon-button-danger";
+        deleteBtn.type = "button";
+        deleteBtn.title = "Delete query";
+        deleteBtn.innerHTML = "&#10005;";
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteQuery(query.id);
+        });
+        actions.appendChild(deleteBtn);
+
+        button.appendChild(actions);
+      }
+
     elements.savedQueryList.appendChild(fragment);
   });
 }
@@ -220,6 +266,150 @@ function renderNotes(query) {
       <p>The app only accepts read-only SQL: <code>SELECT</code>, <code>WITH</code>, <code>SHOW</code>, <code>DESCRIBE</code>, and <code>EXPLAIN</code>.</p>
     </section>
   `;
+}
+
+function openNewQueryModal() {
+  updateCategoryDatalist();
+  elements.modalQueryId.value = "";
+  elements.modalTitle.textContent = "New Query";
+  elements.modalTitleInput.value = "";
+  elements.modalCategoryInput.value = "";
+  elements.modalDescriptionInput.value = "";
+  elements.modalSqlInput.value = elements.sqlEditor.value;
+  elements.modalVizType.value = "";
+  elements.modalVizXKey.value = "";
+  elements.modalVizYKeys.value = "";
+  elements.modalDelete.hidden = true;
+  elements.modalBackdrop.hidden = false;
+  elements.modalTitleInput.focus();
+}
+
+function openEditQueryModal(queryId) {
+  const query = state.queries.find((q) => q.id === queryId);
+  if (!query) {
+    return;
+  }
+
+  updateCategoryDatalist();
+  const viz = query.visualization || {};
+
+  elements.modalQueryId.value = query.id;
+  elements.modalTitle.textContent = "Edit Query";
+  elements.modalTitleInput.value = query.title;
+  elements.modalCategoryInput.value = query.category || "";
+  elements.modalDescriptionInput.value = query.description || "";
+  elements.modalSqlInput.value = query.sql;
+  elements.modalVizType.value = viz.type || "";
+  elements.modalVizXKey.value = viz.xKey || viz.labelKey || "";
+  elements.modalVizYKeys.value = (viz.yKeys || []).join(", ") || (viz.valueKey ? viz.valueKey : "");
+  elements.modalDelete.hidden = false;
+  elements.modalBackdrop.hidden = false;
+  elements.modalTitleInput.focus();
+}
+
+function closeModal() {
+  elements.modalBackdrop.hidden = true;
+}
+
+function updateCategoryDatalist() {
+  const categories = [...new Set(state.queries.map((q) => q.category).filter(Boolean))];
+  elements.modalCategoryList.innerHTML = "";
+  categories.forEach((cat) => {
+    const option = document.createElement("option");
+    option.value = cat;
+    elements.modalCategoryList.appendChild(option);
+  });
+}
+
+async function saveQuery() {
+  const title = elements.modalTitleInput.value.trim();
+  const sql = elements.modalSqlInput.value.trim();
+
+  if (!title) {
+    alert("Title is required.");
+    return;
+  }
+  if (!sql) {
+    alert("SQL is required.");
+    return;
+  }
+
+  const vizType = elements.modalVizType.value;
+  let visualization = null;
+  if (vizType) {
+    visualization = { type: vizType };
+    const xKey = elements.modalVizXKey.value.trim();
+    const yKeysRaw = elements.modalVizYKeys.value.trim();
+    if (vizType === "donut") {
+      if (xKey) visualization.labelKey = xKey;
+      if (yKeysRaw) visualization.valueKey = yKeysRaw.split(",")[0].trim();
+    } else {
+      if (xKey) visualization.xKey = xKey;
+      if (yKeysRaw) visualization.yKeys = yKeysRaw.split(",").map((k) => k.trim()).filter(Boolean);
+    }
+  }
+
+  const body = {
+    title,
+    category: elements.modalCategoryInput.value.trim(),
+    description: elements.modalDescriptionInput.value.trim(),
+    sql,
+  };
+  if (visualization) {
+    body.visualization = visualization;
+  }
+
+  const queryId = elements.modalQueryId.value;
+  const isUpdate = Boolean(queryId);
+
+  try {
+    const url = isUpdate ? `/api/queries/${queryId}` : "/api/queries";
+    const method = isUpdate ? "PUT" : "POST";
+    const result = await fetchJson(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    await reloadQueries();
+    closeModal();
+
+    if (isUpdate && state.activeQueryId === queryId) {
+      applyActiveQuery(queryId);
+    } else if (!isUpdate) {
+      applyActiveQuery(result.id);
+    }
+  } catch (error) {
+    alert(`Failed to save query: ${error.message}`);
+  }
+}
+
+async function deleteQuery(queryId) {
+  if (!confirm("Delete this query permanently?")) {
+    return;
+  }
+
+  try {
+    await fetchJson(`/api/queries/${queryId}`, { method: "DELETE" });
+
+    await reloadQueries();
+
+    if (state.activeQueryId === queryId) {
+      const first = state.queries[0];
+      if (first) {
+        applyActiveQuery(first.id);
+      }
+    }
+  } catch (error) {
+    alert(`Failed to delete query: ${error.message}`);
+  }
+}
+
+async function reloadQueries() {
+  const queriesResponse = await fetchJson("/api/queries");
+  state.queries = queriesResponse.queries;
+  renderCategories();
+  renderSavedQueries();
 }
 
 async function runQuery() {
@@ -712,6 +902,28 @@ elements.sqlEditor.addEventListener("keydown", (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
     event.preventDefault();
     runQuery();
+  }
+});
+
+elements.newQuery.addEventListener("click", openNewQueryModal);
+elements.modalSave.addEventListener("click", saveQuery);
+elements.modalCancel.addEventListener("click", closeModal);
+elements.modalClose.addEventListener("click", closeModal);
+elements.modalDelete.addEventListener("click", () => {
+  const queryId = elements.modalQueryId.value;
+  if (queryId) {
+    deleteQuery(queryId);
+    closeModal();
+  }
+});
+elements.modalBackdrop.addEventListener("click", (event) => {
+  if (event.target === elements.modalBackdrop) {
+    closeModal();
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !elements.modalBackdrop.hidden) {
+    closeModal();
   }
 });
 

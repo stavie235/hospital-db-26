@@ -20,6 +20,7 @@
         <section class="panel sidebar-panel">
           <div class="panel-header">
             <h2>Saved Searches</h2>
+            <button id="new-query" class="ghost-button" type="button" title="New query">+ New</button>
           </div>
           <div class="library-tools">
             <label class="sr-only" for="query-filter">Filter saved queries</label>
@@ -122,6 +123,59 @@
           </section>
         </section>
       </main>
+    </div>
+
+    <div id="query-modal-backdrop" class="modal-backdrop" hidden>
+      <div id="query-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <h3 id="modal-title">New Query</h3>
+          <button id="modal-close" class="ghost-button" type="button" aria-label="Close">Close</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="modal-query-id" value="">
+          <label class="form-label" for="modal-title-input">Title <span class="required">*</span></label>
+          <input id="modal-title-input" class="form-input" type="text" placeholder="My query" required>
+
+          <label class="form-label" for="modal-category-input">Category</label>
+          <input id="modal-category-input" class="form-input" type="text" placeholder="Custom" list="modal-category-list">
+          <datalist id="modal-category-list"></datalist>
+
+          <label class="form-label" for="modal-description-input">Description</label>
+          <input id="modal-description-input" class="form-input" type="text" placeholder="What this query returns">
+
+          <label class="form-label" for="modal-sql-input">SQL <span class="required">*</span></label>
+          <textarea id="modal-sql-input" class="form-textarea" rows="8" placeholder="SELECT ..." required spellcheck="false"></textarea>
+
+          <fieldset class="form-fieldset">
+            <legend>Visualization (optional)</legend>
+            <label class="form-label" for="modal-viz-type">Type</label>
+            <select id="modal-viz-type" class="form-input">
+              <option value="">Auto</option>
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
+              <option value="donut">Donut</option>
+              <option value="table">Table</option>
+            </select>
+            <div class="form-row">
+              <div>
+                <label class="form-label" for="modal-viz-xkey">X / Label Key</label>
+                <input id="modal-viz-xkey" class="form-input" type="text" placeholder="column_name">
+              </div>
+              <div>
+                <label class="form-label" for="modal-viz-ykeys">Y Keys (comma-separated)</label>
+                <input id="modal-viz-ykeys" class="form-input" type="text" placeholder="col1, col2">
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-delete" class="danger-button" type="button" hidden>Delete</button>
+          <div class="modal-footer-right">
+            <button id="modal-cancel" class="ghost-button" type="button">Cancel</button>
+            <button id="modal-save" class="primary-button" type="button">Save Query</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <template id="saved-query-template">

@@ -236,21 +236,21 @@ BEGIN
     -- -------------------------------------------------
     INSERT INTO department (name, description, num_beds, floor_building, director_id, photo_url)
     VALUES
-        ('Καρδιολογική', 'Κλινική καρδιολογίας και στεφανιαίας φροντίδας.', 20, 'A-1', NULL, 'https://example.com/departments/cardiology.jpg'),
-        ('Χειρουργική', 'Γενική χειρουργική κλινική.', 20, 'A-2', NULL, 'https://example.com/departments/surgery.jpg'),
-        ('ΜΕΘ', 'Μονάδα εντατικής θεραπείας.', 20, 'A-3', NULL, 'https://example.com/departments/icu.jpg'),
-        ('Επείγοντα', 'Τμήμα επειγόντων περιστατικών.', 20, 'A-0', NULL, 'https://example.com/departments/er.jpg'),
-        ('Ορθοπαιδική', 'Ορθοπαιδική κλινική.', 20, 'B-1', NULL, 'https://example.com/departments/ortho.jpg'),
-        ('Νευρολογική', 'Νευρολογική κλινική.', 20, 'B-2', NULL, 'https://example.com/departments/neuro.jpg'),
-        ('Ογκολογική', 'Ογκολογικό τμήμα.', 20, 'B-3', NULL, 'https://example.com/departments/oncology.jpg'),
-        ('Πνευμονολογική', 'Πνευμονολογική κλινική.', 20, 'C-1', NULL, 'https://example.com/departments/pulmo.jpg'),
-        ('Νεφρολογική', 'Νεφρολογικό τμήμα.', 20, 'C-2', NULL, 'https://example.com/departments/nephro.jpg'),
-        ('Γαστρεντερολογική', 'Γαστρεντερολογική κλινική.', 20, 'C-3', NULL, 'https://example.com/departments/gastro.jpg'),
-        ('Παιδιατρική', 'Παιδιατρικό τμήμα.', 20, 'D-1', NULL, 'https://example.com/departments/pediatrics.jpg'),
-        ('Δερματολογική', 'Δερματολογική κλινική.', 20, 'D-2', NULL, 'https://example.com/departments/derma.jpg'),
-        ('ΩΡΛ', 'Ωτορινολαρυγγολογικό τμήμα.', 20, 'D-3', NULL, 'https://example.com/departments/ent.jpg'),
-        ('Οφθαλμολογική', 'Οφθαλμολογικό τμήμα.', 20, 'E-1', NULL, 'https://example.com/departments/ophthalmology.jpg'),
-        ('Αιματολογική', 'Αιματολογική κλινική.', 20, 'E-2', NULL, 'https://example.com/departments/hematology.jpg');
+        ('Καρδιολογική', 'Κλινική καρδιολογίας και στεφανιαίας φροντίδας.', 20, 'A-1', NULL, 'https://randomuser.me/api/portraits/women/50.jpg'),
+        ('Χειρουργική', 'Γενική χειρουργική κλινική.', 20, 'A-2', NULL, 'https://randomuser.me/api/portraits/men/51.jpg'),
+        ('ΜΕΘ', 'Μονάδα εντατικής θεραπείας.', 20, 'A-3', NULL, 'https://randomuser.me/api/portraits/women/52.jpg'),
+        ('Επείγοντα', 'Τμήμα επειγόντων περιστατικών.', 20, 'A-0', NULL, 'https://randomuser.me/api/portraits/men/53.jpg'),
+        ('Ορθοπαιδική', 'Ορθοπαιδική κλινική.', 20, 'B-1', NULL, 'https://randomuser.me/api/portraits/women/54.jpg'),
+        ('Νευρολογική', 'Νευρολογική κλινική.', 20, 'B-2', NULL, 'https://randomuser.me/api/portraits/men/55.jpg'),
+        ('Ογκολογική', 'Ογκολογικό τμήμα.', 20, 'B-3', NULL, 'https://randomuser.me/api/portraits/women/56.jpg'),
+        ('Πνευμονολογική', 'Πνευμονολογική κλινική.', 20, 'C-1', NULL, 'https://randomuser.me/api/portraits/men/57.jpg'),
+        ('Νεφρολογική', 'Νεφρολογικό τμήμα.', 20, 'C-2', NULL, 'https://randomuser.me/api/portraits/women/58.jpg'),
+        ('Γαστρεντερολογική', 'Γαστρεντερολογική κλινική.', 20, 'C-3', NULL, 'https://randomuser.me/api/portraits/men/59.jpg'),
+        ('Παιδιατρική', 'Παιδιατρικό τμήμα.', 20, 'D-1', NULL, 'https://randomuser.me/api/portraits/women/60.jpg'),
+        ('Δερματολογική', 'Δερματολογική κλινική.', 20, 'D-2', NULL, 'https://randomuser.me/api/portraits/men/61.jpg'),
+        ('ΩΡΛ', 'Ωτορινολαρυγγολογικό τμήμα.', 20, 'D-3', NULL, 'https://randomuser.me/api/portraits/women/62.jpg'),
+        ('Οφθαλμολογική', 'Οφθαλμολογικό τμήμα.', 20, 'E-1', NULL, 'https://randomuser.me/api/portraits/men/63.jpg'),
+        ('Αιματολογική', 'Αιματολογική κλινική.', 20, 'E-2', NULL, 'https://randomuser.me/api/portraits/women/64.jpg');
 
     -- -------------------------------------------------
     -- 3. Doctors (80)
@@ -270,7 +270,7 @@ BEGIN
             CONCAT('210', LPAD(i, 7, '0')),
             DATE_ADD('2010-01-01', INTERVAL i * 23 DAY),
             'doctor',
-            CONCAT('https://example.com/staff/doctors/', i, '.jpg'),
+            CONCAT('https://randomuser.me/api/portraits/', CASE WHEN MOD(i,2)=0 THEN 'men' ELSE 'women' END, '/', MOD(i-1, 100), '.jpg'),
             CONCAT('Dummy profile for doctor ', i)
         );
 
@@ -344,7 +344,7 @@ BEGIN
             CONCAT('211', LPAD(i, 7, '0')),
             DATE_ADD('2012-01-01', INTERVAL i * 11 DAY),
             'nurse',
-            CONCAT('https://example.com/staff/nurses/', i, '.jpg'),
+            CONCAT('https://randomuser.me/api/portraits/', CASE WHEN MOD(i,2)=0 THEN 'women' ELSE 'men' END, '/', MOD(i-1, 100), '.jpg'),
             CONCAT('Dummy profile for nurse ', i)
         );
 
@@ -377,7 +377,7 @@ BEGIN
             CONCAT('212', LPAD(i, 7, '0')),
             DATE_ADD('2011-05-01', INTERVAL i * 13 DAY),
             'administrative',
-            CONCAT('https://example.com/staff/admin/', i, '.jpg'),
+            CONCAT('https://randomuser.me/api/portraits/', CASE WHEN MOD(i,2)=0 THEN 'men' ELSE 'women' END, '/', MOD(i-1, 100), '.jpg'),
             CONCAT('Dummy profile for admin staff ', i)
         );
 
@@ -427,16 +427,16 @@ BEGIN
 
     INSERT INTO procedure_room (room_name, room_type, description, photo_url)
     VALUES
-        ('Χειρουργείο 1', 'χειρουργείο', 'Κύριο χειρουργείο γενικής χειρουργικής.', 'https://example.com/rooms/or1.jpg'),
-        ('Χειρουργείο 2', 'χειρουργείο', 'Χειρουργείο ορθοπαιδικών πράξεων.', 'https://example.com/rooms/or2.jpg'),
-        ('Χειρουργείο 3', 'χειρουργείο', 'Χειρουργείο καρδιοχειρουργικών πράξεων.', 'https://example.com/rooms/or3.jpg'),
-        ('Χειρουργείο 4', 'χειρουργείο', 'Χειρουργείο μικρών επεμβάσεων.', 'https://example.com/rooms/or4.jpg'),
-        ('Χειρουργείο 5', 'χειρουργείο', 'Χειρουργείο επειγόντων περιστατικών.', 'https://example.com/rooms/or5.jpg'),
-        ('Αίθουσα Επέμβασης 1', 'αίθουσα επέμβασης', 'Αίθουσα επεμβατικών εξετάσεων.', 'https://example.com/rooms/pr1.jpg'),
-        ('Αίθουσα Επέμβασης 2', 'αίθουσα επέμβασης', 'Αίθουσα ενδοσκοπικών πράξεων.', 'https://example.com/rooms/pr2.jpg'),
-        ('Αίθουσα Επέμβασης 3', 'αίθουσα επέμβασης', 'Αίθουσα βιοψιών και μικρών πράξεων.', 'https://example.com/rooms/pr3.jpg'),
-        ('Αίθουσα Επέμβασης 4', 'αίθουσα επέμβασης', 'Αίθουσα διαγνωστικών παρεμβάσεων.', 'https://example.com/rooms/pr4.jpg'),
-        ('Αίθουσα Επέμβασης 5', 'αίθουσα επέμβασης', 'Αίθουσα αγγειογραφιών.', 'https://example.com/rooms/pr5.jpg');
+        ('Χειρουργείο 1', 'χειρουργείο', 'Κύριο χειρουργείο γενικής χειρουργικής.', 'https://randomuser.me/api/portraits/men/70.jpg'),
+        ('Χειρουργείο 2', 'χειρουργείο', 'Χειρουργείο ορθοπαιδικών πράξεων.', 'https://randomuser.me/api/portraits/women/71.jpg'),
+        ('Χειρουργείο 3', 'χειρουργείο', 'Χειρουργείο καρδιοχειρουργικών πράξεων.', 'https://randomuser.me/api/portraits/men/72.jpg'),
+        ('Χειρουργείο 4', 'χειρουργείο', 'Χειρουργείο μικρών επεμβάσεων.', 'https://randomuser.me/api/portraits/women/73.jpg'),
+        ('Χειρουργείο 5', 'χειρουργείο', 'Χειρουργείο επειγόντων περιστατικών.', 'https://randomuser.me/api/portraits/men/74.jpg'),
+        ('Αίθουσα Επέμβασης 1', 'αίθουσα επέμβασης', 'Αίθουσα επεμβατικών εξετάσεων.', 'https://randomuser.me/api/portraits/women/75.jpg'),
+        ('Αίθουσα Επέμβασης 2', 'αίθουσα επέμβασης', 'Αίθουσα ενδοσκοπικών πράξεων.', 'https://randomuser.me/api/portraits/men/76.jpg'),
+        ('Αίθουσα Επέμβασης 3', 'αίθουσα επέμβασης', 'Αίθουσα βιοψιών και μικρών πράξεων.', 'https://randomuser.me/api/portraits/women/77.jpg'),
+        ('Αίθουσα Επέμβασης 4', 'αίθουσα επέμβασης', 'Αίθουσα διαγνωστικών παρεμβάσεων.', 'https://randomuser.me/api/portraits/men/78.jpg'),
+        ('Αίθουσα Επέμβασης 5', 'αίθουσα επέμβασης', 'Αίθουσα αγγειογραφιών.', 'https://randomuser.me/api/portraits/women/79.jpg');
 
     -- -------------------------------------------------
     -- 6. Patients (200) and emergency contacts
@@ -481,7 +481,7 @@ BEGIN
                 WHEN 2 THEN 'Ανασφάλιστος'
                 ELSE 'Στρατιωτική Ασφάλιση'
             END,
-            CONCAT('https://example.com/patients/', i, '.jpg')
+            CONCAT('https://randomuser.me/api/portraits/', CASE WHEN MOD(i,2)=0 THEN 'women' ELSE 'men' END, '/', MOD(i-1, 100), '.jpg')
         );
 
         INSERT INTO emergency_contact (patient_id, full_name, phone, relationship)

@@ -1,3 +1,29 @@
+import json
+import threading
+from pathlib import Path
+
+CUSTOM_QUERIES_FILE = Path(__file__).resolve().parent / "custom_queries.json"
+_custom_queries_lock = threading.Lock()
+
+
+def load_custom_queries():
+    with _custom_queries_lock:
+        if CUSTOM_QUERIES_FILE.exists():
+            with open(CUSTOM_QUERIES_FILE) as f:
+                return json.load(f)
+        return []
+
+
+def save_custom_queries(queries):
+    with _custom_queries_lock:
+        with open(CUSTOM_QUERIES_FILE, "w") as f:
+            json.dump(queries, f, indent=2)
+
+
+def get_all_queries():
+    return SAVED_QUERIES + load_custom_queries()
+
+
 SAVED_QUERIES = [
     {
         "id": "q01-revenue-department-year-ken",

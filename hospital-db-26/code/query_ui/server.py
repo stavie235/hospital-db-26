@@ -12,7 +12,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from saved_queries import DEFAULT_QUERY_ID, SAVED_QUERIES
+from saved_queries import DEFAULT_QUERY_ID, SAVED_QUERIES, get_all_queries, load_custom_queries, save_custom_queries
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -30,6 +30,7 @@ DB_NAME = os.environ.get("HOSPITAL_DB_NAME", "hospital")
 QUERY_TIMEOUT_SECONDS = 45
 MAX_PREVIEW_ROWS = 1000
 
+QUERY_ID_PATTERN = re.compile(r"^/api/queries/([a-zA-Z0-9_-]+)$")
 READ_ONLY_PATTERN = re.compile(r"^\s*(WITH|SELECT|SHOW|DESCRIBE|DESC|EXPLAIN)\b", re.IGNORECASE)
 BLOCKED_PATTERN = re.compile(
     r"\b(INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|REPLACE|GRANT|REVOKE|SET|CALL|LOAD|SOURCE|USE)\b",
@@ -210,7 +211,7 @@ class QueryUIHandler(BaseHTTPRequestHandler):
             self.send_json({"status": "ok"})
             return
         if parsed.path == "/api/queries":
-            self.send_json({"defaultQueryId": DEFAULT_QUERY_ID, "queries": SAVED_QUERIES})
+            self.send_json({"defaultQueryId": DEFAULT_QUERY_ID, "queries": get_all_queries()})
             return
         if parsed.path == "/api/schema":
             self.handle_schema()
@@ -224,6 +225,25 @@ class QueryUIHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/query":
             self.handle_query()
+            return
+        if parsed.path == "/api/queries":
+            self.handle_create_query()
+            return
+        self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint.")
+
+    def do_PUT(self) -> None:
+        parsed = urlparse(self.path)
+        match = QUERY_ID_PATTERN.match(parsed.path)
+        if match:
+            self.handle_update_query(match.group(1))
+            return
+        self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint.")
+
+    def do_DELETE(self) -> None:
+        parsed = urlparse(self.path)
+        match = QUERY_ID_PATTERN.match(parsed.path)
+        if match:
+            self.handle_delete_query(match.group(1))
             return
         self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint.")
 
@@ -253,6 +273,100 @@ class QueryUIHandler(BaseHTTPRequestHandler):
         except Exception as exc:
             self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
 
+    def handle_create_query(self) -> None:
+        try:
+            body = self.read_json_body()
+            title = str(body.get("title", "")).strip()
+            category = str(body.get("category", "")).strip()
+            description = str(body.get("description", "")).strip()
+            sql = str(body.get("sql", "")).strip()
+            visualization = body.get("visualization")
+
+            if not title:
+                raise ValueError("Title is required.")
+            if not sql:
+                raise ValueError("SQL is required.")
+
+            custom_id = f"custom-{int(time.time() * 1000)}"
+            new_query = {
+                "id": custom_id,
+                "title": title,
+                "category": category or "Custom",
+                "description": description,
+                "sql": sql,
+            }
+            if isinstance(visualization, dict):
+                new_query["visualization"] = visualization
+
+            queries = load_custom_queries()
+            queries.append(new_query)
+            save_custom_queries(queries)
+
+            self.send_json(new_query, status=HTTPStatus.CREATED)
+        except (ValueError, RuntimeError) as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    def handle_update_query(self, query_id: str) -> None:
+        try:
+            if not query_id.startswith("custom-"):
+                raise ValueError("Built-in queries cannot be modified.")
+
+            body = self.read_json_body()
+            queries = load_custom_queries()
+
+            index = next((i for i, q in enumerate(queries) if q["id"] == query_id), None)
+            if index is None:
+                self.send_json({"error": "Query not found."}, status=HTTPStatus.NOT_FOUND)
+                return
+
+            existing = queries[index]
+            title = str(body.get("title", "")).strip()
+            if title:
+                existing["title"] = title
+            if "category" in body:
+                existing["category"] = str(body["category"]).strip() or existing["category"]
+            if "description" in body:
+                existing["description"] = str(body["description"]).strip()
+            if "sql" in body:
+                sql = str(body["sql"]).strip()
+                if sql:
+                    existing["sql"] = sql
+            if "visualization" in body:
+                visualization = body["visualization"]
+                if isinstance(visualization, dict):
+                    existing["visualization"] = visualization
+                elif visualization is None:
+                    existing.pop("visualization", None)
+
+            queries[index] = existing
+            save_custom_queries(queries)
+            self.send_json(existing)
+        except (ValueError, RuntimeError) as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
+    def handle_delete_query(self, query_id: str) -> None:
+        try:
+            if not query_id.startswith("custom-"):
+                raise ValueError("Built-in queries cannot be deleted.")
+
+            queries = load_custom_queries()
+            filtered = [q for q in queries if q["id"] != query_id]
+
+            if len(filtered) == len(queries):
+                self.send_json({"error": "Query not found."}, status=HTTPStatus.NOT_FOUND)
+                return
+
+            save_custom_queries(filtered)
+            self.send_json({"deleted": query_id})
+        except (ValueError, RuntimeError) as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
+        except Exception as exc:
+            self.send_json({"error": str(exc)}, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+
     def serve_static(self, relative_path: str) -> None:
         target = (STATIC_DIR / relative_path).resolve()
         if not str(target).startswith(str(STATIC_DIR.resolve())) or not target.exists() or not target.is_file():
@@ -262,6 +376,7 @@ class QueryUIHandler(BaseHTTPRequestHandler):
         content_type, _ = mimetypes.guess_type(target.name)
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", content_type or "application/octet-stream")
+        self.send_header("Cache-Control", "no-cache")
         self.end_headers()
         self.wfile.write(target.read_bytes())
 
