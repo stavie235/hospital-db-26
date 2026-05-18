@@ -6,15 +6,15 @@
 
 ## ER Diagram
 
-![ER Diagram](diagrams/er-diagram-hospital-latest-2.drawio.png)
+![ER Diagram](diagrams/er.png)
 
 
 
 ---
 
-## Relational Schema
+## Relational Diagram
 
-[diagrams/relational.pdf](diagrams/relational.pdf)
+![Relational Diagram](diagrams/relational.png)
 
 ---
 
