@@ -236,21 +236,21 @@ BEGIN
     -- -------------------------------------------------
     INSERT INTO department (name, description, num_beds, floor_building, director_id, photo_url)
     VALUES
-        ('Καρδιολογική', 'Κλινική καρδιολογίας και στεφανιαίας φροντίδας.', 20, 'A-1', NULL, 'https://randomuser.me/api/portraits/women/50.jpg'),
-        ('Χειρουργική', 'Γενική χειρουργική κλινική.', 20, 'A-2', NULL, 'https://randomuser.me/api/portraits/men/51.jpg'),
-        ('ΜΕΘ', 'Μονάδα εντατικής θεραπείας.', 20, 'A-3', NULL, 'https://randomuser.me/api/portraits/women/52.jpg'),
-        ('Επείγοντα', 'Τμήμα επειγόντων περιστατικών.', 20, 'A-0', NULL, 'https://randomuser.me/api/portraits/men/53.jpg'),
-        ('Ορθοπαιδική', 'Ορθοπαιδική κλινική.', 20, 'B-1', NULL, 'https://randomuser.me/api/portraits/women/54.jpg'),
-        ('Νευρολογική', 'Νευρολογική κλινική.', 20, 'B-2', NULL, 'https://randomuser.me/api/portraits/men/55.jpg'),
-        ('Ογκολογική', 'Ογκολογικό τμήμα.', 20, 'B-3', NULL, 'https://randomuser.me/api/portraits/women/56.jpg'),
-        ('Πνευμονολογική', 'Πνευμονολογική κλινική.', 20, 'C-1', NULL, 'https://randomuser.me/api/portraits/men/57.jpg'),
-        ('Νεφρολογική', 'Νεφρολογικό τμήμα.', 20, 'C-2', NULL, 'https://randomuser.me/api/portraits/women/58.jpg'),
-        ('Γαστρεντερολογική', 'Γαστρεντερολογική κλινική.', 20, 'C-3', NULL, 'https://randomuser.me/api/portraits/men/59.jpg'),
-        ('Παιδιατρική', 'Παιδιατρικό τμήμα.', 20, 'D-1', NULL, 'https://randomuser.me/api/portraits/women/60.jpg'),
-        ('Δερματολογική', 'Δερματολογική κλινική.', 20, 'D-2', NULL, 'https://randomuser.me/api/portraits/men/61.jpg'),
-        ('ΩΡΛ', 'Ωτορινολαρυγγολογικό τμήμα.', 20, 'D-3', NULL, 'https://randomuser.me/api/portraits/women/62.jpg'),
-        ('Οφθαλμολογική', 'Οφθαλμολογικό τμήμα.', 20, 'E-1', NULL, 'https://randomuser.me/api/portraits/men/63.jpg'),
-        ('Αιματολογική', 'Αιματολογική κλινική.', 20, 'E-2', NULL, 'https://randomuser.me/api/portraits/women/64.jpg');
+        ('Καρδιολογική', 'Κλινική καρδιολογίας και στεφανιαίας φροντίδας.', 20, 'A-1', NULL, 'https://images.unsplash.com/photo-1648224394432-8830fec15349'),
+        ('Χειρουργική', 'Γενική χειρουργική κλινική.', 20, 'A-2', NULL, 'https://images.unsplash.com/photo-1551076805-e1869033e561'),
+        ('ΜΕΘ', 'Μονάδα εντατικής θεραπείας.', 20, 'A-3', NULL, 'https://images.unsplash.com/photo-1688565631550-ff8aa569f71a'),
+        ('Επείγοντα', 'Τμήμα επειγόντων περιστατικών.', 20, 'A-0', NULL, 'https://images.unsplash.com/photo-1778151270902-cb0ca572f2ee'),
+        ('Ορθοπαιδική', 'Ορθοπαιδική κλινική.', 20, 'B-1', NULL, 'https://images.unsplash.com/photo-1758654859934-2a03792260a0'),
+        ('Νευρολογική', 'Νευρολογική κλινική.', 20, 'B-2', NULL, 'https://images.unsplash.com/photo-1758206523747-69af03fb56e4'),
+        ('Ογκολογική', 'Ογκολογικό τμήμα.', 20, 'B-3', NULL, 'https://images.unsplash.com/photo-1648224395362-45708f929dc2'),
+        ('Πνευμονολογική', 'Πνευμονολογική κλινική.', 20, 'C-1', NULL, 'https://images.unsplash.com/photo-1758654859923-339c0f2f925e'),
+        ('Νεφρολογική', 'Νεφρολογικό τμήμα.', 20, 'C-2', NULL, 'https://images.unsplash.com/photo-1648224395331-06117e433549'),
+        ('Γαστρεντερολογική', 'Γαστρεντερολογική κλινική.', 20, 'C-3', NULL, 'https://images.unsplash.com/photo-1766299892549-b56b257d1ddd'),
+        ('Παιδιατρική', 'Παιδιατρικό τμήμα.', 20, 'D-1', NULL, 'https://images.unsplash.com/photo-1758691462284-9eeec33fb0e7'),
+        ('Δερματολογική', 'Δερματολογική κλινική.', 20, 'D-2', NULL, 'https://images.unsplash.com/photo-1759411364526-43d37be9708d'),
+        ('ΩΡΛ', 'Ωτορινολαρυγγολογικό τμήμα.', 20, 'D-3', NULL, 'https://images.unsplash.com/photo-1758691461935-202e2ef6b69f'),
+        ('Οφθαλμολογική', 'Οφθαλμολογικό τμήμα.', 20, 'E-1', NULL, 'https://images.unsplash.com/photo-1515900387962-fd8dba567ed0'),
+        ('Αιματολογική', 'Αιματολογική κλινική.', 20, 'E-2', NULL, 'https://images.unsplash.com/photo-1758654859680-b1806c93f422');
 
     -- -------------------------------------------------
     -- 3. Doctors (80)
